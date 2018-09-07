@@ -53,10 +53,11 @@ public class Main {
 
             playerTotal += player.playerhand.get(i).getValue();
             System.out.println(player.playerhand.get(i).getValue());
-            if (player.playerhand.get(i).getType().equalsTo("A")) {
+            if (player.playerhand.get(i).getType().equalsIgnoreCase("A")) {
+                System.out.println("Player has total: " + playerTotal + "\n");//undone
+            }else{
+                System.out.println("Player has total: " + playerTotal + "\n");
             }
-            System.out.println("Player has total: " + playerTotal + "\n");
-
             System.out.println("Dealer has: ");
             int dealerTotal = 0;
             for (int j = 0; j < dealerHand.size(); j++) {

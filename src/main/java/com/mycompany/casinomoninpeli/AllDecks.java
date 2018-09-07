@@ -33,14 +33,15 @@ public class AllDecks {
         Random rgen = new Random();
         for(int i=0;i<4*8;i++){
             
-            newDecks.add(new Card(2));
-            newDecks.add(new Card(3));
-            newDecks.add(new Card(4));
-            newDecks.add(new Card(5));
-            newDecks.add(new Card(6));
-            newDecks.add(new Card(7));
-            newDecks.add(new Card(8));
-            newDecks.add(new Card(9));
+            newDecks.add(new Card(2,"2"));
+            newDecks.add(new Card(3,"3"));
+            newDecks.add(new Card(4,"4"));
+            newDecks.add(new Card(5,"5"));
+            newDecks.add(new Card(6,"6"));
+            newDecks.add(new Card(7,"7"));
+            newDecks.add(new Card(8,"8"));
+            newDecks.add(new Card(9,"9"));
+            newDecks.add(new Card(10,"10"));
             newDecks.add(new Card(10,"J"));
             newDecks.add(new Card(10,"Q"));
             newDecks.add(new Card(10,"K"));
