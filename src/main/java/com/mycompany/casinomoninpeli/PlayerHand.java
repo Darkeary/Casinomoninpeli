@@ -14,13 +14,14 @@ import java.util.ArrayList;
 public class PlayerHand {
     
     PlayerHand(){
-        System.out.println("noname player.");
+        //System.out.println("noname player.");
     }
     PlayerHand(String string){
         this.name=string;
         System.out.println("player name: "+ this.name  );
     }
     private String name;
+    private int total=0;
     public ArrayList<Card> playerhand= new ArrayList<>();
 
     public String getName(){
@@ -30,7 +31,13 @@ public class PlayerHand {
         playerhand.add(card);
     }
 
-    ArrayList getPlayerHand() {
+    public ArrayList getPlayerHand() {
         return this.playerhand;
+    }
+    public int getPlayerTotal() {
+        return this.total;
+    }
+    public void setPlayerTotal(int integ) {
+        this.total=integ;
     }
 }

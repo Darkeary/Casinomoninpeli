@@ -30,7 +30,7 @@ public class AllDecks {
             
     private ArrayList<Card> newDecksGenerator(){
         //ArrayList<Card> newDecks=new ArrayList<>();
-        Random rgen = new Random();
+        //Random rgen = new Random();
         for(int i=0;i<4*8;i++){
             
             newDecks.add(new Card(2,"2"));

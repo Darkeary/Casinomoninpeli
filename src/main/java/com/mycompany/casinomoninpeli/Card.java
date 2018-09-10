@@ -14,24 +14,24 @@ public class Card {
     private int value2=0;
     private String type="";
     Card(){
-        System.out.print("no card created, missing generated number.");
+        //System.out.print("no card created, missing generated number.");
     }
     Card(int recvalue){
         setValue(recvalue);
         
-        System.out.print("card created ("+recvalue+").");
+        //System.out.print("card created ("+recvalue+").");
     }
     Card(int recvalue,String type){
         setValue(recvalue);
         setType(type);
-        System.out.print("card created ("+recvalue+")("+type+").");
+        //System.out.print("card created ("+recvalue+")("+type+").");
     }
     Card(int recvalue,int recvalue2,String type){
         
         setValue(recvalue);
         setValue(recvalue2);
         setType(type);
-        System.out.print("card created ("+recvalue+", alt:"+recvalue2+"("+type+").");
+        //System.out.print("card created ("+recvalue+", alt:"+recvalue2+"("+type+").");
     }
     
     public int getValue(){
