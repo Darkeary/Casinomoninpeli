@@ -19,7 +19,8 @@ public class LogicTest {
 
     @Before
     public void setUp() {
-        logic = new Logic();
+        PlayerHand.resetCounter();
+        logic = new Logic(null);
         logic.addPlayer(new PlayerHand("Player 1"));
         logic.addPlayer(new PlayerHand("Player 2"));
         logic.addPlayer(new PlayerHand("Player 3"));
@@ -73,20 +74,18 @@ public class LogicTest {
 
     }
 
-    // CheckResult laskee käsien summat oikein ja palauttaa GameState olion
-    @Test
-    public void checkResult() {
-    }
-
     @Test
     public void givePlayerNewCard() {
-    }
+        logic.startRound();
 
-    @Test
-    public void endRound() {
-    }
+        int sizeBeforeAdd = logic.getPlayerHands().get((long) 1).getPlayerHand().size();
 
-    @Test
-    public void playerTurn() {
+        for (int i = 0; i < 10; i++)
+            logic.givePlayerNewCard((long) 1);
+
+        int sizeAfterAdd = logic.getPlayerHands().get((long) 1).getPlayerHand().size();
+
+        assertEquals(sizeBeforeAdd + 10, sizeAfterAdd);
+
     }
 }

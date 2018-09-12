@@ -19,12 +19,10 @@ public class PlayerHand {
     private final long id;
     private Stack<Card> playerHand = new Stack<>();
     private int total;
-    private boolean inGame = true;
 
     public PlayerHand(String name) {
         this.name = name;
         this.id = sequence.getAndIncrement();
-        System.out.println(this.id);
     }
 
     public void insertCard(Card card) {
@@ -41,10 +39,6 @@ public class PlayerHand {
 
     public long getId() {
         return id;
-    }
-
-    public boolean isInGame() {
-        return inGame;
     }
 
     public Stack getPlayerHand() {
@@ -73,7 +67,6 @@ public class PlayerHand {
             for (Card ace : aces) {
                 total += ace.getValue2();
             }
-            inGame = false;
         } else {
 
             int valueLeft = 21 - total;
@@ -92,6 +85,10 @@ public class PlayerHand {
         }
 
         return total;
+    }
+
+    static public void resetCounter() {
+        sequence.set(0);
     }
 
     public String toString() {

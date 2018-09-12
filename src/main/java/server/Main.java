@@ -5,11 +5,15 @@
  */
 package server;
 
+import util.PlayerHand;
+
 /**
  * @author roman
  */
 
 public class Main {
+
+    // Test menu
     public static void main(String[] args) throws Exception {
 
         System.out.println("Hello");
@@ -17,7 +21,13 @@ public class Main {
 
         Logic logic = new Logic(MockView.getInstance());
 
+        logic.addPlayer(new PlayerHand("Pertti"));
+        logic.addPlayer(new PlayerHand("Jaakko"));
+        logic.addPlayer(new PlayerHand("Ville"));
+
         logic.shuffle();
+
+        logic.startRound();
 
     }
 

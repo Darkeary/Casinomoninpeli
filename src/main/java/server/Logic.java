@@ -1,6 +1,7 @@
 package server;
 
 import communication.GameState;
+import communication.PlayerAction;
 import util.Card;
 import util.PlayerHand;
 
@@ -47,11 +48,30 @@ public class Logic {
         Collections.shuffle(currentDecks);
     }
 
-    public GameState checkResult() {
-        return null;
-    }
-
     public void playerTurn(Long playerId) {
+        if (serverListener == null) return;
+        if (playerId == null) {
+            endRound();
+            return;
+        }
+
+        PlayerHand playerHand = playerHands.get(playerId);
+        if (playerHand.getPlayerTotal() >= 21) {
+            playerTurn(playerTurns.pollFirst());
+            return;
+        }
+
+        GameState currentState = new GameState(playerHands, dealerHand, playerId, false, -1);
+        PlayerAction action = serverListener.sendGameStateAndWaitForReply(currentState);
+
+        if (action == PlayerAction.HIT) {
+            givePlayerNewCard(playerId);
+            playerTurn(playerId);
+        } else if (action == PlayerAction.STAY) {
+            playerTurn(playerTurns.pollFirst());
+        } else if (action == PlayerAction.SURRENDER) {
+            endRound();
+        }
     }
 
     public void startRound() {
@@ -65,6 +85,8 @@ public class Logic {
         dealerHand.insertCard(currentDecks.pop());
 
         giveAllPlayersNewCard();
+
+        playerTurn(playerTurns.pollFirst());
 
     }
 
@@ -82,10 +104,27 @@ public class Logic {
 
     public void givePlayerNewCard(Long playerId) {
         PlayerHand playerHand = playerHands.get(playerId);
-        playerHand.insertCard(currentDecks.pop());
+        if (playerHand != null)
+            playerHand.insertCard(currentDecks.pop());
     }
 
     public void endRound() {
+
+        while (dealerHand.getPlayerTotal() < 17) {
+            dealerHand.insertCard(currentDecks.pop());
+        }
+
+        System.out.println("Jakajan lopullinen käsi: " + dealerHand);
+        System.out.println("Käden summa: " + dealerHand.getPlayerTotal() + "\n");
+
+        for (PlayerHand playerHand : playerHands.values()) {
+            if ((
+                    playerHand.getPlayerTotal() > 21 && playerHand.getPlayerTotal() > dealerHand.getPlayerTotal()) ||
+                    (dealerHand.getPlayerTotal() > 21 && playerHand.getPlayerTotal() <= 21
+                    )) {
+                System.out.println(playerHand.getName() + " voitti.");
+            }
+        }
     }
 
     Stack<Card> getCurrentDecks() {

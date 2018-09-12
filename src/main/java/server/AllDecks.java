@@ -45,7 +45,7 @@ public class AllDecks {
             decks.push(new Card(10, "K"));
             decks.push(new Card(11, 1, "A"));
         }
-        System.out.print("cardDecks created.");
+
         return decks;
     }
 

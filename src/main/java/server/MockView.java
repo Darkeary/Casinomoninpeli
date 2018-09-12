@@ -2,6 +2,9 @@ package server;
 
 import communication.GameState;
 import communication.PlayerAction;
+import util.PlayerHand;
+
+import java.util.Scanner;
 
 public class MockView implements ServerListener {
     private static MockView ourInstance = new MockView();
@@ -16,10 +19,33 @@ public class MockView implements ServerListener {
     @Override
     public PlayerAction sendGameStateAndWaitForReply(GameState gameStateToSend) {
 
-        // Käsitteelee GameState olion
+        System.out.println("Dealerin käsi:");
 
-        // Pyytää inputin, mikä muunnetaan oikeaksi PlayerActioniksi
+        System.out.println(gameStateToSend.dealerHand);
 
-        return null;
+        System.out.println("Käden summa: " + gameStateToSend.dealerHand.getPlayerTotal());
+
+        System.out.println("\nPelaajien kädet:\n");
+
+        for (PlayerHand playerHand : gameStateToSend.playerHands.values()) {
+            System.out.println(playerHand.getName() + ": \n" + playerHand);
+            System.out.println("Käden summa: " + playerHand.getPlayerTotal());
+        }
+
+        PlayerHand currentPlayer = gameStateToSend.playerHands.get(gameStateToSend.currentPlayerId);
+
+        System.out.println("\n" + currentPlayer.getName() + " vuoro: Ota uusi kortti (o) tai jää (j).");
+
+        Scanner reader = new Scanner(System.in);
+        String choice = reader.nextLine();
+
+        if (choice.contains("o")) {
+            return PlayerAction.HIT;
+        } else if (choice.contains("j")) {
+            return PlayerAction.STAY;
+        } else {
+            return PlayerAction.SURRENDER;
+        }
+
     }
 }

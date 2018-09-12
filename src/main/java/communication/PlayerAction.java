@@ -1,5 +1,5 @@
 package communication;
 
 public enum PlayerAction {
-    HIT, STAY
+    HIT, STAY, DOUBLE, SPLIT, SURRENDER
 }
