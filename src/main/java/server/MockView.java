@@ -44,7 +44,7 @@ public class MockView implements ServerListener {
         } else if (choice.contains("j")) {
             return PlayerAction.STAY;
         } else {
-            return PlayerAction.SURRENDER;
+            return PlayerAction.QUIT;
         }
 
     }

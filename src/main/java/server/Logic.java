@@ -61,7 +61,7 @@ public class Logic {
             return;
         }
 
-        GameState currentState = new GameState(playerHands, dealerHand, playerId, false, -1);
+        GameState currentState = new GameState(playerHands, dealerHand, playerId, false);
         PlayerAction action = serverListener.sendGameStateAndWaitForReply(currentState);
 
         if (action == PlayerAction.HIT) {
@@ -69,8 +69,8 @@ public class Logic {
             playerTurn(playerId);
         } else if (action == PlayerAction.STAY) {
             playerTurn(playerTurns.pollFirst());
-        } else if (action == PlayerAction.SURRENDER) {
-            endRound();
+        } else if (action == PlayerAction.QUIT) {
+            playerHands.remove(playerId);
         }
     }
 
@@ -118,10 +118,10 @@ public class Logic {
         System.out.println("Käden summa: " + dealerHand.getPlayerTotal() + "\n");
 
         for (PlayerHand playerHand : playerHands.values()) {
-            if ((
-                    playerHand.getPlayerTotal() > 21 && playerHand.getPlayerTotal() > dealerHand.getPlayerTotal()) ||
-                    (dealerHand.getPlayerTotal() > 21 && playerHand.getPlayerTotal() <= 21
-                    )) {
+            if (
+                    (playerHand.getPlayerTotal() <= 21 && playerHand.getPlayerTotal() > dealerHand.getPlayerTotal()) ||
+                            (dealerHand.getPlayerTotal() > 21 && playerHand.getPlayerTotal() <= 21)
+            ) {
                 System.out.println(playerHand.getName() + " voitti.");
             }
         }
