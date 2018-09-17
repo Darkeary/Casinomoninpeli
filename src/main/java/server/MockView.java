@@ -7,6 +7,7 @@ import util.PlayerHand;
 import java.util.Scanner;
 
 public class MockView implements ServerListener {
+
     private static MockView ourInstance = new MockView();
 
     private MockView() {
@@ -47,5 +48,22 @@ public class MockView implements ServerListener {
             return PlayerAction.QUIT;
         }
 
+    }
+
+    @Override
+    public PlayerAction askForRoundParticipation(long playerId) {
+        System.out.println("Pelaaja " + playerId + ":");
+        System.out.println("Jatkatko seuraavalle kierrokselle (j) vai lopetatko pelin (l)?");
+
+        Scanner reader = new Scanner(System.in);
+        String choice = reader.nextLine();
+
+        if (choice.contains("j")) {
+            return PlayerAction.PLAY;
+        } else if (choice.contains("l")) {
+            return PlayerAction.QUIT;
+        } else {
+            return PlayerAction.QUIT;
+        }
     }
 }

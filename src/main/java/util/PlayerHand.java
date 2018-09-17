@@ -5,46 +5,73 @@
  */
 package util;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * @author Anders
+ * @author Tuomas
+ * 
+ * Luokka kuvaa pelaajan blacjack  kortti "kättä".
+ * Luokassa säilytetään pelin aikana jaetut kortit ja lasketaan korttien summa.
+ * 
  */
-public class PlayerHand {
+@Entity
+@Table(name = "player_hands")
+public class PlayerHand implements Serializable {
+
+    @Id
+    @Column(name = "id")
+    private long databaseHandId;
+
+    @Column(name = "name")
+    private String name;
 
     private static AtomicInteger sequence = new AtomicInteger(0);
-    private final String name;
-    private final long id;
+    private  long id;
     private Stack<Card> playerHand = new Stack<>();
     private int total;
 
+    public PlayerHand() {
+    }
+
+    /**
+     * Yksinkertainen konstruktori.
+     * Asettaa kädelle uniikin id numeron.
+     * 
+     * @param name pelaajan nimi
+     */
     public PlayerHand(String name) {
         this.name = name;
         this.id = sequence.getAndIncrement();
     }
 
+    /**
+     * Lisää kortin pelaajan käteen.
+     * 
+     * @param card käteen lisättävä kortti
+     */
     public void insertCard(Card card) {
         playerHand.push(card);
     }
 
-    public void empty() {
-        playerHand.empty();
+    /**
+     * Tyhtentää käden korteista
+     */
+    public void clear() {
+        playerHand.clear();
     }
 
-    public String getName() {
-        return this.name;
-    }
-
-    public long getId() {
-        return id;
-    }
-
-    public Stack getPlayerHand() {
-        return this.playerHand;
-    }
-
+    /**
+     * Laskee käden tämänhektisen summan.
+     * Ässät lasketaan niin että saatu summa on mahdollisimman lähellä kahtakymmentäyhtä, mutta ei koskaan sen yli.
+     */
     public int getPlayerTotal() {
         total = 0;
         ArrayList<Card> aces = new ArrayList<>();
@@ -73,8 +100,9 @@ public class PlayerHand {
             int acesMaxValue = aces.size() * 11;
 
             // Jos kaikki ässät 11 pysyy alle 21, lisätään suoraan
-            if (acesMaxValue < valueLeft) total += acesMaxValue;
-            else {
+            if (acesMaxValue < valueLeft) {
+                total += acesMaxValue;
+            } else {
                 // Muussa tapauksessa muutetaan ässiä ykkösiksi kunnes päästään 21 tai alle
                 int valueToAdd = acesMaxValue;
                 while (valueLeft - valueToAdd <= 0) {
@@ -99,6 +127,30 @@ public class PlayerHand {
         }
 
         return handString;
+    }
+
+    public String getName() {
+        return this.name;
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public Stack getPlayerHand() {
+        return this.playerHand;
+    }
+
+    public long getDatabaseHandId() {
+        return databaseHandId;
+    }
+
+    public void setDatabaseHandId(long databaseHandId) {
+        this.databaseHandId = databaseHandId;
+    }
+    
+        public void setName(String name) {
+        this.name = name;
     }
 
 }

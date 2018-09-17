@@ -16,11 +16,12 @@ import static org.junit.Assert.assertThat;
 public class LogicTest {
 
     private Logic logic;
+    private TestView testView = new TestView();
 
     @Before
     public void setUp() {
         PlayerHand.resetCounter();
-        logic = new Logic(null);
+        logic = new Logic(testView);
         logic.addPlayer(new PlayerHand("Player 1"));
         logic.addPlayer(new PlayerHand("Player 2"));
         logic.addPlayer(new PlayerHand("Player 3"));
@@ -54,19 +55,17 @@ public class LogicTest {
     // Kun startRound on kutsuttu, kaikilla pelaajilla ja jakajalla on kaksi korttia
     @Test
     public void startRound() {
-
+        
         // Testataan että ennen kutsua kenelläkään ei ole kortteja
-        assertEquals(0, logic.getDealerHand().getPlayerHand().size());
-
         for (PlayerHand playerHand : logic.getPlayerHands().values()) {
             assertEquals(0, playerHand.getPlayerHand().size());
         }
 
+        testView.setTestToRun("START_ROUND_TEST");
         // Aloitetaan kierros
         logic.startRound();
 
         // Testataan onko kaikilla nyt kaksi korttia
-        assertEquals(2, logic.getDealerHand().getPlayerHand().size());
 
         for (PlayerHand playerHand : logic.getPlayerHands().values()) {
             assertEquals(2, playerHand.getPlayerHand().size());
@@ -74,9 +73,9 @@ public class LogicTest {
 
     }
 
+    // Kun givePlayerNewCard on kutsuttu, pelaajan käteen tulee uusi kortti
     @Test
     public void givePlayerNewCard() {
-        logic.startRound();
 
         int sizeBeforeAdd = logic.getPlayerHands().get((long) 1).getPlayerHand().size();
 
@@ -87,5 +86,16 @@ public class LogicTest {
 
         assertEquals(sizeBeforeAdd + 10, sizeAfterAdd);
 
+    }
+    
+    @Test
+    public void quitRoundRemovesPlayer() {
+        testView.setTestToRun("QUIT_TEST");
+        logic.startRound();
+        
+        // TestView lähettää lopetus signaalin kaikkina pelaajina.
+        
+        assertEquals(0, logic.getPlayerHands().size());
+        
     }
 }

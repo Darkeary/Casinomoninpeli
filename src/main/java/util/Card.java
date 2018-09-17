@@ -5,13 +5,37 @@
  */
 package util;
 
+import java.io.Serializable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
 /**
  * @author Anders
+ * @author Tuomas
+ * 
+ * Luokka kuvaa pelikorttia.
+ * 
  */
-public class Card {
+@Entity
+@Table(name = "cards")
+public class Card implements Serializable {
+
+    @Id
+    @Column(name = "id")
+    private Long id;
+
+    @Column(name = "value")
     private int value = 0;
+    @Column(name = "alt_value")
     private int value2 = 0;
+    
+    @Column(name = "type")
     private String type = "";
+
+    public Card() {
+    }
 
     public Card(int recvalue, String type) {
         setValue(recvalue);
@@ -30,35 +54,32 @@ public class Card {
         return this.value;
     }
 
-    ;
-
     public void setValue(int newValue) {
         this.value = newValue;
     }
-
-    ;
 
     public int getValue2() {
         return this.value2;
     }
 
-    ;
-
     public void setValue2(int newValue) {
         this.value2 = newValue;
     }
-
-    ;
 
     public String getType() {
         return this.type;
     }
 
-    ;
-
     private void setType(String newType) {
         this.type = newType;
     }
 
-    ;
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
 }
