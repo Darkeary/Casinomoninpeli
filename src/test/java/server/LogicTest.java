@@ -10,8 +10,7 @@ import java.util.Stack;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class LogicTest {
 
@@ -92,10 +91,39 @@ public class LogicTest {
     public void quitRoundRemovesPlayer() {
         testView.setTestToRun("QUIT_TEST");
         logic.startRound();
-        
+
         // TestView lähettää lopetus signaalin kaikkina pelaajina.
-        
+
         assertEquals(0, logic.getPlayerHands().size());
-        
+
+    }
+
+    @Test
+    public void resetMakesNewDeckWhenUnder105Cards() {
+
+
+        Card card = logic.givePlayerNewCard((long) 1);
+        assertTrue("Pelaajan kättä ei ollut olemassa, koska korttia ei pystytty jakamaan", card != null);
+        assertEquals(415, logic.getCurrentDecks().size());
+        // Korttien jako toimii
+
+        for (int i = 0; i < 100; i++) {
+            logic.givePlayerNewCard((long) 1);
+        }
+
+        assertTrue(logic.getCurrentDecks().size() > 105);
+        logic.resetGame();
+        assertEquals(315, logic.getCurrentDecks().size());
+        // Resetointi ei muuta pakkaa jos korttien määrä > 105
+
+        for (int i = 0; i < 211; i++) {
+            logic.givePlayerNewCard((long) 1);
+        }
+
+        assertTrue(logic.getCurrentDecks().size() < 105);
+        logic.resetGame();
+        assertEquals(416, logic.getCurrentDecks().size());
+        // Resetointi muuttaa pakkaa jos korttien määrä < 105
+
     }
 }

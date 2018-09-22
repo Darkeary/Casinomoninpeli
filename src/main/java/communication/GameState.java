@@ -2,9 +2,10 @@ package communication;
 
 import util.PlayerHand;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class GameState {
+public class GameState implements Serializable {
 
     public HashMap<Long, PlayerHand> playerHands;
     public PlayerHand dealerHand;

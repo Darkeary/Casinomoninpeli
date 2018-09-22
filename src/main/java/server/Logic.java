@@ -2,14 +2,10 @@ package server;
 
 import communication.GameState;
 import communication.PlayerAction;
-import java.util.ArrayList;
 import util.Card;
 import util.PlayerHand;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Stack;
+import java.util.*;
 
 /**
  * @author Anders
@@ -62,7 +58,7 @@ public class Logic {
     }
 
     public void addPlayer(PlayerHand playerHand) {
-        playerHands.put(playerHand.getId(), playerHand);
+        playerHands.put(playerHand.getInGameId(), playerHand);
     }
 
     public void shuffle() {
@@ -108,7 +104,7 @@ public class Logic {
      * Aloittaa uuden kierroksen eli tyhjentää aikaisemman vuoron tilan ja jakaa kaikille kaksi korttia.
      */
     public void startRound() {
-        
+
         if(playerHands.size() == 0) return;
 
         resetGame();
@@ -134,8 +130,8 @@ public class Logic {
             playerHand.clear();
         }
         playerTurns = new LinkedList<>(playerHands.keySet());
-        
-        if(currentDecks.size() > 104) {
+
+        if (currentDecks.size() < 105) {
             currentDecks = allDecks.getNewDecks();
             shuffle();
         }
@@ -154,10 +150,14 @@ public class Logic {
      * Antaa pelaajalle kortin.
      * @param playerId Pelaajan id kenelle halutaan antaa kortti
      */
-    public void givePlayerNewCard(Long playerId) {
+    public Card givePlayerNewCard(Long playerId) {
         PlayerHand playerHand = playerHands.get(playerId);
         if (playerHand != null) {
-            playerHand.insertCard(currentDecks.pop());
+            Card newCard = currentDecks.pop();
+            playerHand.insertCard(newCard);
+            return newCard;
+        } else {
+            return null;
         }
     }
 
@@ -176,29 +176,61 @@ public class Logic {
                 System.out.println(playerHand.getName() + " voitti.");
             }
         }
-        
+
+        Statistic statForRound = new Statistic(playerHands.values(), dealerHand);
+
+        DatabaseInterface dbIF = DatabaseInterface.getInstance();
+
+        dbIF.saveStatistic(statForRound);
+
+        System.out.println("\nJakajan kädet aikaisemmilta kierroksilta:");
+
+        List<Statistic> stats = dbIF.getStatistics();
+
+        for (Statistic stat : stats) {
+            System.out.println(stat.getId() + ": ");
+            System.out.println(stat.getDealerHand());
+        }
+
+        System.out.print("\n");
+
         doNextRound();
     }
-    
+
     /**
      * Kysyy pelaajilta haluavatko he osallistua seuraavalle kierrokselle ja aloittaa sen.
      */
     public void doNextRound() {
-        
+
         ArrayList<Long> playersToRemove = new ArrayList<Long>();
-        
+        ArrayList<Long> playersToContinue = new ArrayList<Long>();
+
         for(PlayerHand playerHand : playerHands.values()) {
-           PlayerAction action =  serverListener.askForRoundParticipation(playerHand.getId());
-           
+            PlayerAction action = serverListener.askForRoundParticipation(playerHand.getInGameId());
+
            if(action == PlayerAction.QUIT) {
-               playersToRemove.add(playerHand.getId());
+               playersToRemove.add(playerHand.getInGameId());
+           } else {
+               playersToContinue.add(playerHand.getInGameId());
            }
         }
-        
+
         for(Long playerId : playersToRemove) {
             playerHands.remove(playerId);
         }
-        
+
+
+        // Pelaajien kädet uusitaan Hibernaten takia. Halutaan tehdä uusi rivi tietokantaan.
+        for (Long playerId : playersToContinue) {
+            String playerName = playerHands.get(playerId).getName();
+            playerHands.put(playerId, new PlayerHand(playerName, playerId));
+        }
+
+        String dealerName = dealerHand.getName();
+        Long dealerId = dealerHand.getInGameId();
+
+        dealerHand = new PlayerHand(dealerName, dealerId);
+
         startRound();
     }
 

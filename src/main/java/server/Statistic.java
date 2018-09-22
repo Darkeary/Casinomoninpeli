@@ -5,30 +5,58 @@
  */
 package server;
 
-import java.io.Serializable;
-import java.util.Set;
-import javax.persistence.*;
 import util.PlayerHand;
 
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.Collection;
+
 /**
- *
  * @author Tuomas
  */
 @Entity
-@Table(name="statistics")
+@Table(name = "statistics")
 public class Statistic implements Serializable {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
-    private int statisticId;
-    
-    @OneToMany
-    private Set<PlayerHand> gameHands;
-    
-    @OneToOne
-    @JoinColumn(name="winning_hand_id", nullable=false)
-    private int winningHandId;
-    
-    
+    private int id;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    private Collection<PlayerHand> gameHands;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private PlayerHand dealerHand;
+
+    public Statistic() {
+    }
+
+    public Statistic(Collection<PlayerHand> gameHands, PlayerHand dealerHand) {
+        this.gameHands = gameHands;
+        this.dealerHand = dealerHand;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public Collection<PlayerHand> getGameHands() {
+        return gameHands;
+    }
+
+    public void setGameHands(Collection<PlayerHand> gameHands) {
+        this.gameHands = gameHands;
+    }
+
+    public PlayerHand getDealerHand() {
+        return dealerHand;
+    }
+
+    public void setDealerHand(PlayerHand dealerHand) {
+        this.dealerHand = dealerHand;
+    }
 }

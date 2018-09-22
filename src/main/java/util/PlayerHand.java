@@ -5,38 +5,37 @@
  */
 package util;
 
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
 /**
  * @author Anders
  * @author Tuomas
- * 
- * Luokka kuvaa pelaajan blacjack  kortti "kättä".
+ * <p>
+ * Luokka kuvaa pelaajan blacjack kortti "kättä".
  * Luokassa säilytetään pelin aikana jaetut kortit ja lasketaan korttien summa.
- * 
  */
 @Entity
 @Table(name = "player_hands")
 public class PlayerHand implements Serializable {
 
+    // Näillä on merkitystä vain pelin aikana
+    @Transient
+    private static AtomicInteger sequence = new AtomicInteger(0);
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private long databaseHandId;
-
-    @Column(name = "name")
     private String name;
-
-    private static AtomicInteger sequence = new AtomicInteger(0);
-    private  long id;
-    private Stack<Card> playerHand = new Stack<>();
+    @OneToMany(cascade = CascadeType.ALL)
+    private Collection<Card> playerCards = new Stack<>();
     private int total;
+    @Transient
+    private long inGameId;
 
     public PlayerHand() {
     }
@@ -44,28 +43,37 @@ public class PlayerHand implements Serializable {
     /**
      * Yksinkertainen konstruktori.
      * Asettaa kädelle uniikin id numeron.
-     * 
+     *
      * @param name pelaajan nimi
      */
     public PlayerHand(String name) {
         this.name = name;
-        this.id = sequence.getAndIncrement();
+        this.inGameId = sequence.getAndIncrement();
+    }
+
+    public PlayerHand(String name, Long id) {
+        this.name = name;
+        this.inGameId = id;
+    }
+
+    static public void resetCounter() {
+        sequence.set(0);
     }
 
     /**
      * Lisää kortin pelaajan käteen.
-     * 
+     *
      * @param card käteen lisättävä kortti
      */
     public void insertCard(Card card) {
-        playerHand.push(card);
+        getPlayerHand().add(card);
     }
 
     /**
      * Tyhtentää käden korteista
      */
     public void clear() {
-        playerHand.clear();
+        playerCards.clear();
     }
 
     /**
@@ -77,7 +85,7 @@ public class PlayerHand implements Serializable {
         ArrayList<Card> aces = new ArrayList<>();
 
         // Käydään kaikki kortit läpi
-        for (Card card : playerHand) {
+        for (Card card : playerCards) {
 
             String type = card.getType();
 
@@ -115,14 +123,10 @@ public class PlayerHand implements Serializable {
         return total;
     }
 
-    static public void resetCounter() {
-        sequence.set(0);
-    }
-
     public String toString() {
         String handString = "| ";
 
-        for (Card card : playerHand) {
+        for (Card card : playerCards) {
             handString += card.getType() + " | ";
         }
 
@@ -133,12 +137,16 @@ public class PlayerHand implements Serializable {
         return this.name;
     }
 
-    public long getId() {
-        return id;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public Stack getPlayerHand() {
-        return this.playerHand;
+    public long getInGameId() {
+        return inGameId;
+    }
+
+    public Collection<Card> getPlayerHand() {
+        return this.playerCards;
     }
 
     public long getDatabaseHandId() {
@@ -148,9 +156,4 @@ public class PlayerHand implements Serializable {
     public void setDatabaseHandId(long databaseHandId) {
         this.databaseHandId = databaseHandId;
     }
-    
-        public void setName(String name) {
-        this.name = name;
-    }
-
 }

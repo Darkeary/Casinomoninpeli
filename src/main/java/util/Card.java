@@ -5,32 +5,28 @@
  */
 package util;
 
+import javax.persistence.*;
 import java.io.Serializable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
 
 /**
  * @author Anders
  * @author Tuomas
- * 
+ * <p>
  * Luokka kuvaa pelikorttia.
- * 
  */
 @Entity
 @Table(name = "cards")
 public class Card implements Serializable {
 
     @Id
-    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(name = "value")
     private int value = 0;
     @Column(name = "alt_value")
     private int value2 = 0;
-    
+
     @Column(name = "type")
     private String type = "";
 
@@ -81,5 +77,4 @@ public class Card implements Serializable {
     public void setId(Long id) {
         this.id = id;
     }
-
 }
