@@ -6,6 +6,7 @@ import util.Card;
 import util.PlayerHand;
 
 import java.util.*;
+import util.CardCounterPrediction;
 
 /**
  * @author Anders
@@ -44,6 +45,11 @@ public class Logic {
      * Pelaajien id:eistä koostuva vuorolista
      */
     private LinkedList<Long> playerTurns = new LinkedList<>();
+    
+    /**
+     * Pelin kortinlaskija
+     */
+    private CardCounter cardCounter = new CardCounter();
 
     /* --------------------- */
     /**
@@ -88,8 +94,16 @@ public class Logic {
         }
 
         GameState currentState = new GameState(playerHands, dealerHand, playerId, false);
-        PlayerAction action = serverListener.sendGameStateAndWaitForReply(currentState);
 
+        // Annetaan kortinlaskijalle
+        CardCounterPrediction prediction = cardCounter.getNewPredictionBasedOnGameState(currentState);
+        
+        // Lisätään lähetettävään olioon
+        currentState.addCardCounterPrediction(prediction);
+        
+        // Annetaan pelaajille
+        PlayerAction action = serverListener.sendGameStateAndWaitForReply(currentState);
+        
         if (action == PlayerAction.HIT) {
             givePlayerNewCard(playerId);
             playerTurn(playerId);

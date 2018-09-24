@@ -4,7 +4,11 @@ import util.PlayerHand;
 
 import java.io.Serializable;
 import java.util.HashMap;
+import util.CardCounterPrediction;
 
+/**
+ * Luokan tarkoitus on toimia tiedon välittäjänä serveriltä clienttiin
+ */
 public class GameState implements Serializable {
 
     public HashMap<Long, PlayerHand> playerHands;
@@ -13,12 +17,17 @@ public class GameState implements Serializable {
     public long nextPlayerId;
     public int timeoutInSeconds = 30;
     public boolean gameEnded;
+    public CardCounterPrediction prediction;
 
     public GameState(HashMap<Long, PlayerHand> playerHands, PlayerHand dealerHand, long currentPlayerId, boolean gameEnded) {
         this.playerHands = playerHands;
         this.dealerHand = dealerHand;
         this.currentPlayerId = currentPlayerId;
         this.gameEnded = gameEnded;
+    }
+    
+    public void addCardCounterPrediction(CardCounterPrediction prediction) {
+        this.prediction = prediction;
     }
 
 }
