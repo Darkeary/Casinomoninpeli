@@ -7,10 +7,6 @@ package util;
 
 import communication.PlayerAction;
 
-/**
- *
- * @author Tuomas
- */
 public class CardCounterPrediction {
     
     public PlayerAction suggestedAction;

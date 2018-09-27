@@ -39,7 +39,7 @@ public class TestingJUnit {
     // public void hello() {}
 
     @Test
-    public void test() {
+    public void testingJUnit4() {
         assertEquals("Tämä testi menee aina läpi.", 2, 1 + 1);
     }
 }

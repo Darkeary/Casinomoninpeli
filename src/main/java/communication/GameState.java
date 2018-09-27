@@ -1,13 +1,14 @@
 package communication;
 
+import util.CardCounterPrediction;
 import util.PlayerHand;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import util.CardCounterPrediction;
 
 /**
  * Luokan tarkoitus on toimia tiedon välittäjänä serveriltä clienttiin
+ * @author Tuomas
  */
 public class GameState implements Serializable {
 

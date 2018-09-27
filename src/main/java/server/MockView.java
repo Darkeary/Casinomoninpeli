@@ -6,6 +6,11 @@ import util.PlayerHand;
 
 import java.util.Scanner;
 
+/**
+ * Testi käyttöliittymä.
+ *
+ * @author Tuomas
+ */
 public class MockView implements ServerListener {
 
     private static MockView ourInstance = new MockView();
@@ -35,7 +40,10 @@ public class MockView implements ServerListener {
 
         PlayerHand currentPlayer = gameStateToSend.playerHands.get(gameStateToSend.currentPlayerId);
 
-        System.out.println("\n" + currentPlayer.getName() + " vuoro: Ota uusi kortti (o) tai jää (j).");
+        if (currentPlayer.getPlayerTotal() < 9 || currentPlayer.getPlayerTotal() > 11)
+            System.out.println("\n" + currentPlayer.getName() + " vuoro: Ota uusi kortti (o) tai jää (j).");
+        else
+            System.out.println("\n" + currentPlayer.getName() + " vuoro: Ota uusi kortti (o), tuplaa (t) tai jää (j).");
 
         Scanner reader = new Scanner(System.in);
         String choice = reader.nextLine();
@@ -44,6 +52,8 @@ public class MockView implements ServerListener {
             return PlayerAction.HIT;
         } else if (choice.contains("j")) {
             return PlayerAction.STAY;
+        } else if (choice.contains("t")) {
+            return PlayerAction.DOUBLE;
         } else {
             return PlayerAction.QUIT;
         }
@@ -65,5 +75,17 @@ public class MockView implements ServerListener {
         } else {
             return PlayerAction.QUIT;
         }
+    }
+
+    @Override
+    public int askForRoundBet(long playerId) {
+        System.out.println("Pelaaja " + playerId + ":");
+        System.out.println("Syötä panoksesi: ");
+
+        Scanner reader = new Scanner(System.in);
+        String amount = reader.nextLine();
+
+        return Integer.parseInt(amount);
+
     }
 }

@@ -10,10 +10,6 @@ import communication.PlayerAction;
 import util.Card;
 import util.CardCounterPrediction;
 
-/**
- *
- * @author Tuomas
- */
 public class CardCounter {
     
     public CardCounterPrediction getNewPredictionBasedOnGameState(GameState gamestate) {

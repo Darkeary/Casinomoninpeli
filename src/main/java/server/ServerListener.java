@@ -3,9 +3,15 @@ package server;
 import communication.GameState;
 import communication.PlayerAction;
 
+/**
+ * Server - client yhteyden rajapinta
+ */
 public interface ServerListener {
 
-    public PlayerAction sendGameStateAndWaitForReply(GameState gameStateToSend);
-    public PlayerAction askForRoundParticipation(long playerId);
+    PlayerAction sendGameStateAndWaitForReply(GameState gameStateToSend);
+
+    PlayerAction askForRoundParticipation(long playerId);
+
+    int askForRoundBet(long playerId);
 
 }

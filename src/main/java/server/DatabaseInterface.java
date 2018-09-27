@@ -11,6 +11,11 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 import java.util.List;
 
+/**
+ * Luokka hoitaa kaikki Hibernateen kohdistuvat operaatiot
+ *
+ * @author Tuomas
+ */
 public class DatabaseInterface {
     private static DatabaseInterface ourInstance = new DatabaseInterface();
     private SessionFactory sessionFactory;
