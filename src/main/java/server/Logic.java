@@ -104,6 +104,9 @@ public class Logic {
         // Annetaan pelaajille
         PlayerAction action = serverListener.sendGameStateAndWaitForReply(currentState);
 
+        Stack<Card> playerCards = (Stack<Card>) playerHand.getPlayerHand();
+        int playerTotal = playerHand.getPlayerTotal();
+
         if (action != null)
             switch (action) {
                 case HIT:
@@ -114,14 +117,36 @@ public class Logic {
                     playerTurn(playerTurns.pollFirst());
                     break;
                 case DOUBLE:
-                    int playerTotal = playerHand.getPlayerTotal();
-                    if (playerTotal >= 9 && playerTotal <= 11) {
+                    if (playerCards.size() == 2 && playerTotal >= 9 && playerTotal <= 11) {
                         playerHand.addToBet(playerHand.getBet());
                         givePlayerNewCard(playerId);
                         playerTurn(playerTurns.pollFirst());
                     }
                     break;
                 case SPLIT:
+                    if (playerCards.size() == 2) {
+                        /*
+                        Card cardOne = playerCards.get(0);
+                        Card cardTwo = playerCards.get(1);
+
+                        if(cardOne.getType().contentEquals(cardTwo.getType())) {
+                            playerHands.remove(playerId);
+
+                            PlayerHand playerHand1 = new PlayerHand(playerHand.getHandPlayer());
+                            PlayerHand playerHand2 = new PlayerHand(playerHand.getHandPlayer());
+
+                            playerHand1.getPlayerHand().add(cardOne);
+                            playerHand2.getPlayerHand().add(cardOne);
+
+                            playerHand1.setSplitHand(playerHand2);
+
+                            playerHands.put(playerId, playerHand1);
+
+                            playerTurn(playerId);
+
+                        }
+                        */
+                    }
                     break;
                 case QUIT:
                     playerHands.remove(playerId);
@@ -208,8 +233,7 @@ public class Logic {
         System.out.println("Käden summa: " + dealerHand.getPlayerTotal() + "\n");
 
         for (PlayerHand playerHand : playerHands.values()) {
-            if ((playerHand.getPlayerTotal() <= 21 && playerHand.getPlayerTotal() > dealerHand.getPlayerTotal())
-                    || (dealerHand.getPlayerTotal() > 21 && playerHand.getPlayerTotal() <= 21)) {
+            if (playerHasWon(playerHand, dealerHand)) {
 
                 System.out.println(playerHand.getName() + " voitti.");
                 int winnings = calculateAndAddRoundWinnings(playerHand);
@@ -224,17 +248,17 @@ public class Logic {
             }
         }
 
-        // Statistic statForRound = new Statistic(playerHands.values(), dealerHand);
+        // Tilasto osuus - kommentoi pois jos ei PuTTY tunnelia
 
-        // DatabaseInterface dbIF = DatabaseInterface.getInstance();
+        Statistic statForRound = new Statistic(playerHands.values(), dealerHand);
 
-        // dbIF.saveStatistic(statForRound);
+        DatabaseInterface dbIF = DatabaseInterface.getInstance();
 
-        // System.out.println("\nJakajan kädet aikaisemmilta kierroksilta:");
+        dbIF.saveStatistic(statForRound);
 
-        // List<Statistic> stats = dbIF.getStatistics();
+        System.out.println("\nJakajan kädet aikaisemmilta kierroksilta:");
 
-        /*
+        List<Statistic> stats = dbIF.getStatistics();
 
         for (Statistic stat : stats) {
             System.out.println(stat.getId() + ": ");
@@ -243,9 +267,20 @@ public class Logic {
 
         System.out.print("\n");
 
-        */
+        CalculateStatistics.calculateWinStats(stats);
+
+        System.out.println("Pelattujen kierrosten määrä: " + CalculateStatistics.getTotalPlayerRounds());
+        System.out.println("Pelaajien voittomäärä: " + CalculateStatistics.getTotalPlayerWins());
+        System.out.println("Pelaajien voittoprosentti: " + CalculateStatistics.getPlayerWinPercentage() + "%");
+
+        // --------------------------------
 
         doNextRound();
+    }
+
+    public static boolean playerHasWon(PlayerHand playerHand, PlayerHand dealerHand) {
+        return (playerHand.getPlayerTotal() <= 21 && playerHand.getPlayerTotal() > dealerHand.getPlayerTotal())
+                || (dealerHand.getPlayerTotal() > 21 && playerHand.getPlayerTotal() <= 21);
     }
 
     /**

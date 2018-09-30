@@ -27,6 +27,7 @@ public class DatabaseInterface {
         conf.addAnnotatedClass(Statistic.class);
         conf.addAnnotatedClass(util.PlayerHand.class);
         conf.addAnnotatedClass(util.Card.class);
+        conf.addAnnotatedClass(util.Player.class);
 
         ServiceRegistry sr = new StandardServiceRegistryBuilder().applySettings(conf.getProperties()).build();
         sessionFactory = conf.buildSessionFactory(sr);

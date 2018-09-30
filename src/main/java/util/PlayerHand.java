@@ -42,6 +42,9 @@ public class PlayerHand implements Serializable {
     @OneToOne(cascade = CascadeType.ALL)
     private Player handPlayer;
 
+    @Transient
+    private PlayerHand splitHand;
+
     public PlayerHand() {
     }
 
@@ -138,6 +141,14 @@ public class PlayerHand implements Serializable {
         }
 
         return handString;
+    }
+
+    public PlayerHand getSplitHand() {
+        return splitHand;
+    }
+
+    public void setSplitHand(PlayerHand splitHand) {
+        this.splitHand = splitHand;
     }
 
     public Player getHandPlayer() {

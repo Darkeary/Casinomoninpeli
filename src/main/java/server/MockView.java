@@ -2,9 +2,11 @@ package server;
 
 import communication.GameState;
 import communication.PlayerAction;
+import util.Card;
 import util.PlayerHand;
 
 import java.util.Scanner;
+import java.util.Stack;
 
 /**
  * Testi käyttöliittymä.
@@ -40,10 +42,24 @@ public class MockView implements ServerListener {
 
         PlayerHand currentPlayer = gameStateToSend.playerHands.get(gameStateToSend.currentPlayerId);
 
-        if (currentPlayer.getPlayerTotal() < 9 || currentPlayer.getPlayerTotal() > 11)
-            System.out.println("\n" + currentPlayer.getName() + " vuoro: Ota uusi kortti (o) tai jää (j).");
-        else
-            System.out.println("\n" + currentPlayer.getName() + " vuoro: Ota uusi kortti (o), tuplaa (t) tai jää (j).");
+        Stack<Card> playerCards = (Stack<Card>) currentPlayer.getPlayerHand();
+
+        String instructions = "\n" + currentPlayer.getName() + " vuoro: Ota uusi kortti (o)";
+
+        if (currentPlayer.getPlayerTotal() > 9 && currentPlayer.getPlayerTotal() < 11)
+            instructions += ", tuplaa (t)";
+        else if (playerCards.size() == 2) {
+
+            Card cardOne = playerCards.get(0);
+            Card cardTwo = playerCards.get(1);
+
+            /*if (cardOne.getType().contentEquals(cardTwo.getType()))
+                instructions += ", splittaa (s)";
+                */
+        }
+        instructions += " tai jää (j).";
+
+        System.out.println(instructions);
 
         Scanner reader = new Scanner(System.in);
         String choice = reader.nextLine();
@@ -54,10 +70,11 @@ public class MockView implements ServerListener {
             return PlayerAction.STAY;
         } else if (choice.contains("t")) {
             return PlayerAction.DOUBLE;
+        } else if (choice.contains("s")) {
+            return PlayerAction.SPLIT;
         } else {
             return PlayerAction.QUIT;
         }
-
     }
 
     @Override
