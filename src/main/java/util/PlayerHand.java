@@ -10,55 +10,65 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Stack;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @author Anders
- * @author Tuomas
- * <p>
  * Luokka kuvaa pelaajan blacjack kortti "kättä".
  * Luokassa säilytetään pelin aikana jaetut kortit ja lasketaan korttien summa.
+ * @author Anders
+ * @author Tuomas
  */
 @Entity
 @Table(name = "player_hands")
 public class PlayerHand implements Serializable {
 
-    // Näillä on merkitystä vain pelin aikana
-    @Transient
-    private static AtomicInteger sequence = new AtomicInteger(0);
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
+    /**
+     * Tietokannassa käytettävä id
+     */
     private long databaseHandId;
-    private String name;
+
     @OneToMany(cascade = CascadeType.ALL)
     private Collection<Card> playerCards = new Stack<>();
+
     private int total;
+
+    /**
+     * Tähän käteen liittyvä panos (jos pelaaja on "jakanut" korttinsa, on hänellä kaksi kättä millä oma panos)
+     */
+    private int handBet;
+
+    @OneToOne(cascade = CascadeType.ALL)
+    private Player handPlayer;
+
     @Transient
-    private long inGameId;
+    private PlayerHand splitHand;
 
     public PlayerHand() {
         this.inGameId = sequence.getAndIncrement();
     }
 
     /**
-     * Yksinkertainen konstruktori.
-     * Asettaa kädelle uniikin id numeron.
-     *
      * @param name pelaajan nimi
      */
     public PlayerHand(String name) {
-        this.name = name;
-        this.inGameId = sequence.getAndIncrement();
+        handPlayer = new Player(name);
     }
 
+    /**
+     * @param name pelaajan nimi
+     * @param id   pelaajan id
+     */
     public PlayerHand(String name, Long id) {
-        this.name = name;
-        this.inGameId = id;
+        handPlayer = new Player(id, name);
     }
 
-    static public void resetCounter() {
-        sequence.set(0);
+    /**
+     * @param handPlayer Käden pelaajan Player olio
+     */
+    public PlayerHand(Player handPlayer) {
+        this.handPlayer = handPlayer;
     }
 
     /**
@@ -108,8 +118,8 @@ public class PlayerHand implements Serializable {
             int valueLeft = 21 - total;
             int acesMaxValue = aces.size() * 11;
 
-            // Jos kaikki ässät 11 pysyy alle 21, lisätään suoraan
-            if (acesMaxValue < valueLeft) {
+            // Jos kaikki ässät 11 pysyy 21 tai alle, lisätään suoraan
+            if (acesMaxValue <= valueLeft) {
                 total += acesMaxValue;
             } else {
                 // Muussa tapauksessa muutetaan ässiä ykkösiksi kunnes päästään 21 tai alle
@@ -134,16 +144,64 @@ public class PlayerHand implements Serializable {
         return handString;
     }
 
+    public PlayerHand getSplitHand() {
+        return splitHand;
+    }
+
+    public void setSplitHand(PlayerHand splitHand) {
+        this.splitHand = splitHand;
+    }
+
+    public Player getHandPlayer() {
+        return handPlayer;
+    }
+
+    public int getFunds() {
+        return handPlayer.getFunds();
+    }
+
+    public void setFunds(int funds) {
+        handPlayer.setFunds(funds);
+    }
+
+    public void addToFunds(int fundsToAdd) {
+        handPlayer.addToFunds(fundsToAdd);
+    }
+
+    public int getBet() {
+        return handBet;
+    }
+
+    public void resetBet() {
+        handPlayer.addToBet(-handBet);
+        handBet = 0;
+    }
+
+    public void addToBet(int betToAdd) {
+        handBet += betToAdd;
+        handPlayer.addToBet(betToAdd);
+    }
+
+    public void setBet(int bet) {
+        handPlayer.addToBet(-handBet);
+        handBet = bet;
+        handPlayer.addToBet(bet);
+    }
+
+    static public void resetCounter() {
+        Player.resetCounter();
+    }
+
     public String getName() {
-        return this.name;
+        return handPlayer.getName();
     }
 
     public void setName(String name) {
-        this.name = name;
+        handPlayer.setName(name);
     }
 
     public long getInGameId() {
-        return inGameId;
+        return handPlayer.getInGameId();
     }
 
     public Collection<Card> getPlayerHand() {

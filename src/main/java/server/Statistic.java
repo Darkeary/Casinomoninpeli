@@ -12,6 +12,7 @@ import java.io.Serializable;
 import java.util.Collection;
 
 /**
+ * Luokka sisältää kaikki tietokantaan tallennettavat tilastoitavat tiedot.
  * @author Tuomas
  */
 @Entity

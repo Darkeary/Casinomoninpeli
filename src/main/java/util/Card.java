@@ -9,10 +9,9 @@ import javax.persistence.*;
 import java.io.Serializable;
 
 /**
+ * Luokka kuvaa pelikorttia.
  * @author Anders
  * @author Tuomas
- * <p>
- * Luokka kuvaa pelikorttia.
  */
 @Entity
 @Table(name = "cards")

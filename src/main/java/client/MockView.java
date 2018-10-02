@@ -2,12 +2,19 @@ package client;
 
 import communication.GameState;
 import communication.PlayerAction;
+import util.Card;
 import server.Logic;
 import server.ServerListener;
 import util.PlayerHand;
 
 import java.util.Scanner;
+import java.util.Stack;
 
+/**
+ * Testi käyttöliittymä.
+ *
+ * @author Tuomas
+ */
 public class MockView implements ServerListener {
 
     private static MockView ourInstance = new MockView();
@@ -40,7 +47,24 @@ public class MockView implements ServerListener {
 
         PlayerHand currentPlayer = gameStateToSend.playerHands.get(gameStateToSend.currentPlayerId);
 
-        System.out.println("\n" + currentPlayer.getName() + " vuoro: Ota uusi kortti (o) tai jää (j).");
+        Stack<Card> playerCards = (Stack<Card>) currentPlayer.getPlayerHand();
+
+        String instructions = "\n" + currentPlayer.getName() + " vuoro: Ota uusi kortti (o)";
+
+        if (currentPlayer.getPlayerTotal() > 9 && currentPlayer.getPlayerTotal() < 11)
+            instructions += ", tuplaa (t)";
+        else if (playerCards.size() == 2) {
+
+            Card cardOne = playerCards.get(0);
+            Card cardTwo = playerCards.get(1);
+
+            /*if (cardOne.getType().contentEquals(cardTwo.getType()))
+                instructions += ", splittaa (s)";
+                */
+        }
+        instructions += " tai jää (j).";
+
+        System.out.println(instructions);
 
         Scanner reader = new Scanner(System.in);
         String choice = reader.nextLine();
@@ -48,6 +72,11 @@ public class MockView implements ServerListener {
         if (choice.contains("o")) {
             return new PlayerAction(PlayerAction.HIT, playerId);
         } else if (choice.contains("j")) {
+            return PlayerAction.STAY;
+        } else if (choice.contains("t")) {
+            return PlayerAction.DOUBLE;
+        } else if (choice.contains("s")) {
+            return PlayerAction.SPLIT;
             return new PlayerAction(PlayerAction.STAY, playerId);
         } else {
             return new PlayerAction(PlayerAction.QUIT, playerId);
@@ -70,6 +99,18 @@ public class MockView implements ServerListener {
         } else {
             return new PlayerAction(PlayerAction.QUIT, playerId);
         }
+    }
+
+    @Override
+    public int askForRoundBet(long playerId) {
+        System.out.println("Pelaaja " + playerId + ":");
+        System.out.println("Syötä panoksesi: ");
+
+        Scanner reader = new Scanner(System.in);
+        String amount = reader.nextLine();
+
+        return Integer.parseInt(amount);
+
     }
 
     @Override
