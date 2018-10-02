@@ -19,7 +19,7 @@ public class Main {
         System.out.println("Hello");
         System.out.println("server started...");
 
-        Logic logic = new Logic(MockView.getInstance());
+        Logic logic = new Logic(new ConnectionHandler());
 
         logic.addPlayer(new PlayerHand("Pertti"));
         logic.addPlayer(new PlayerHand("Jaakko"));

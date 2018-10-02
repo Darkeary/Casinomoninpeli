@@ -14,11 +14,12 @@ public class GameState implements Serializable {
     public int timeoutInSeconds = 30;
     public boolean gameEnded;
 
-    public GameState(HashMap<Long, PlayerHand> playerHands, PlayerHand dealerHand, long currentPlayerId, boolean gameEnded) {
+    public GameState setGameState(HashMap<Long, PlayerHand> playerHands, PlayerHand dealerHand, long currentPlayerId, boolean gameEnded) {
         this.playerHands = playerHands;
         this.dealerHand = dealerHand;
         this.currentPlayerId = currentPlayerId;
         this.gameEnded = gameEnded;
-    }
 
+        return this;
+    }
 }

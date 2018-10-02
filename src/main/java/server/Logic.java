@@ -23,7 +23,16 @@ public class Logic {
      */
     private static final AllDecks allDecks = new AllDecks();
 
+    /**
+     * Pelin olio, mikä toteuttaa kommunikaatio kanavan pelaajiin
+     */
     private final ServerListener serverListener;
+
+
+    /**
+     * Pelin tämänhetkisen tilan säilyttävä olio
+     */
+    private final GameState currentGameState;
 
     /**
      * Tällä hetkellä pelissä käytössä oleva pakka
@@ -39,6 +48,7 @@ public class Logic {
      * Pelaajien kädet järjestettynä id:n mukaan
      */
     private HashMap<Long, PlayerHand> playerHands = new HashMap<>();
+    private boolean playerHandsAccess = false;
 
     /**
      * Pelaajien id:eistä koostuva vuorolista
@@ -55,10 +65,63 @@ public class Logic {
      */
     public Logic(ServerListener serverListener) {
         this.serverListener = serverListener;
+        currentGameState = new GameState();
+        serverListener.setGameLogic(this);
+
     }
 
-    public void addPlayer(PlayerHand playerHand) {
+    public synchronized PlayerHand addPlayer(PlayerHand playerHand) {
+
+        while (playerHandsAccess) {
+            try {
+                wait();
+            } catch (InterruptedException ex) {
+            }
+        }
+
+        playerHandsAccess = true;
+
         playerHands.put(playerHand.getInGameId(), playerHand);
+
+        playerHandsAccess = false;
+        notify();
+
+        return playerHand;
+    }
+
+    public void removePlayer(long playerId) {
+        while (playerHandsAccess) {
+            try {
+                wait();
+            } catch (InterruptedException ex) {
+            }
+        }
+
+        playerHandsAccess = true;
+
+        playerHands.remove(playerId);
+
+        playerHandsAccess = false;
+        notify();
+    }
+
+    public synchronized PlayerHand getPlayer(long playerId) {
+
+        while (playerHandsAccess) {
+            try {
+                wait();
+            } catch (InterruptedException ex) {
+            }
+        }
+
+        playerHandsAccess = true;
+
+        PlayerHand hand = playerHands.get(playerId);
+
+        playerHandsAccess = false;
+        notify();
+
+        return hand;
     }
 
     public void shuffle() {
@@ -81,14 +144,15 @@ public class Logic {
             return;
         }
 
-        PlayerHand playerHand = playerHands.get(playerId);
+        PlayerHand playerHand = getPlayer(playerId);
         if (playerHand.getPlayerTotal() >= 21) {
             playerTurn(playerTurns.pollFirst());
             return;
         }
 
-        GameState currentState = new GameState(playerHands, dealerHand, playerId, false);
-        PlayerAction action = serverListener.sendGameStateAndWaitForReply(currentState);
+        currentGameState.setGameState(playerHands, dealerHand, playerId, false);
+        PlayerAction pAction = serverListener.sendGameStateAndWaitForReply();
+        int action = pAction.getActionId();
 
         if (action == PlayerAction.HIT) {
             givePlayerNewCard(playerId);
@@ -151,7 +215,7 @@ public class Logic {
      * @param playerId Pelaajan id kenelle halutaan antaa kortti
      */
     public Card givePlayerNewCard(Long playerId) {
-        PlayerHand playerHand = playerHands.get(playerId);
+        PlayerHand playerHand = getPlayer(playerId);
         if (playerHand != null) {
             Card newCard = currentDecks.pop();
             playerHand.insertCard(newCard);
@@ -206,7 +270,8 @@ public class Logic {
         ArrayList<Long> playersToContinue = new ArrayList<Long>();
 
         for(PlayerHand playerHand : playerHands.values()) {
-            PlayerAction action = serverListener.askForRoundParticipation(playerHand.getInGameId());
+            PlayerAction pAction = serverListener.askForRoundParticipation(playerHand.getInGameId());
+            int action = pAction.getActionId();
 
            if(action == PlayerAction.QUIT) {
                playersToRemove.add(playerHand.getInGameId());
@@ -222,8 +287,8 @@ public class Logic {
 
         // Pelaajien kädet uusitaan Hibernaten takia. Halutaan tehdä uusi rivi tietokantaan.
         for (Long playerId : playersToContinue) {
-            String playerName = playerHands.get(playerId).getName();
-            playerHands.put(playerId, new PlayerHand(playerName, playerId));
+            String playerName = getPlayer(playerId).getName();
+            addPlayer(new PlayerHand(playerName, playerId));
         }
 
         String dealerName = dealerHand.getName();
@@ -244,5 +309,9 @@ public class Logic {
 
     public HashMap<Long, PlayerHand> getPlayerHands() {
         return playerHands;
+    }
+
+    public GameState getCurrentGameState() {
+        return currentGameState;
     }
 }

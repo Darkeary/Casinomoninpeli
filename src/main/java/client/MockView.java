@@ -1,7 +1,9 @@
-package server;
+package client;
 
 import communication.GameState;
 import communication.PlayerAction;
+import server.Logic;
+import server.ServerListener;
 import util.PlayerHand;
 
 import java.util.Scanner;
@@ -9,6 +11,7 @@ import java.util.Scanner;
 public class MockView implements ServerListener {
 
     private static MockView ourInstance = new MockView();
+    private Logic logic;
 
     private MockView() {
     }
@@ -18,7 +21,9 @@ public class MockView implements ServerListener {
     }
 
     @Override
-    public PlayerAction sendGameStateAndWaitForReply(GameState gameStateToSend) {
+    public PlayerAction sendGameStateAndWaitForReply() {
+
+        GameState gameStateToSend = logic.getCurrentGameState();
 
         System.out.println("Dealerin käsi:");
 
@@ -41,11 +46,11 @@ public class MockView implements ServerListener {
         String choice = reader.nextLine();
 
         if (choice.contains("o")) {
-            return PlayerAction.HIT;
+            return new PlayerAction(PlayerAction.HIT, playerId);
         } else if (choice.contains("j")) {
-            return PlayerAction.STAY;
+            return new PlayerAction(PlayerAction.STAY, playerId);
         } else {
-            return PlayerAction.QUIT;
+            return new PlayerAction(PlayerAction.QUIT, playerId);
         }
 
     }
@@ -59,11 +64,16 @@ public class MockView implements ServerListener {
         String choice = reader.nextLine();
 
         if (choice.contains("j")) {
-            return PlayerAction.PLAY;
+            return new PlayerAction(PlayerAction.PLAY, playerId);
         } else if (choice.contains("l")) {
-            return PlayerAction.QUIT;
+            return new PlayerAction(PlayerAction.QUIT, playerId);
         } else {
-            return PlayerAction.QUIT;
+            return new PlayerAction(PlayerAction.QUIT, playerId);
         }
+    }
+
+    @Override
+    public void setGameLogic(Logic logic) {
+        this.logic = logic;
     }
 }

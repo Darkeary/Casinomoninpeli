@@ -1,11 +1,12 @@
 package server;
 
-import communication.GameState;
 import communication.PlayerAction;
 
 public interface ServerListener {
 
-    public PlayerAction sendGameStateAndWaitForReply(GameState gameStateToSend);
+    public PlayerAction sendGameStateAndWaitForReply();
     public PlayerAction askForRoundParticipation(long playerId);
+
+    public void setGameLogic(Logic logic);
 
 }

@@ -38,6 +38,7 @@ public class PlayerHand implements Serializable {
     private long inGameId;
 
     public PlayerHand() {
+        this.inGameId = sequence.getAndIncrement();
     }
 
     /**
