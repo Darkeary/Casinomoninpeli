@@ -2,6 +2,7 @@ package communication;
 
 public class PlayerAction {
 
+    public static final int NULL = -1;
     public static final int STAY = 0;
     public static final int HIT = 1;
     public static final int DOUBLE = 2;
@@ -12,9 +13,9 @@ public class PlayerAction {
     public static final int DISCONNECT = 6;
 
     final int actionId;
-    final long playerId;
+    final int playerId;
 
-    public PlayerAction(int actionId, long playerId) {
+    public PlayerAction(int actionId, int playerId) {
         this.actionId = actionId;
         this.playerId = playerId;
     }
@@ -23,7 +24,7 @@ public class PlayerAction {
         return actionId;
     }
 
-    public long getPlayerId() {
+    public int getPlayerId() {
         return playerId;
     }
 }

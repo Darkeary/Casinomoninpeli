@@ -4,14 +4,19 @@ import communication.GameState;
 import communication.PlayerAction;
 import util.Card;
 import util.CardCounterPrediction;
-import util.Player;
+import util.PlayerBet;
 import util.PlayerHand;
 
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
+import static communication.PlayerAction.*;
 
 /**
  * Luokka sisältää blacjack pelin logiikan ja tilan. Kaikki pelin eteneminen ja
  * muutokset tapahtuvat täällä.
+ *
  * @author Anders
  * @author Tuomas
  */
@@ -47,18 +52,20 @@ public class Logic {
     /**
      * Pelaajien kädet järjestettynä id:n mukaan
      */
-    private HashMap<Long, PlayerHand> playerHands = new HashMap<>();
+    private HashMap<Integer, PlayerHand> playerHands = new HashMap<>();
     private boolean playerHandsAccess = false;
 
     /**
      * Pelaajien id:eistä koostuva vuorolista
      */
-    private LinkedList<Long> playerTurns = new LinkedList<>();
+    private LinkedList<Integer> playerTurns = new LinkedList<>();
 
     /**
      * Pelin kortinlaskija
      */
     private CardCounter cardCounter = new CardCounter();
+
+    private boolean databaseEnabled = false;
 
     /* --------------------- */
 
@@ -73,7 +80,7 @@ public class Logic {
         this.serverListener = serverListener;
         currentGameState = new GameState();
         serverListener.setGameLogic(this);
-
+        serverListener.startListener();
     }
 
     public synchronized PlayerHand addPlayer(PlayerHand playerHand) {
@@ -85,7 +92,8 @@ public class Logic {
             }
         }
 
-    public void addPlayer(PlayerHand playerHand) {
+        playerHandsAccess = true;
+
         playerHands.put(playerHand.getInGameId(), playerHand);
 
         playerHandsAccess = false;
@@ -94,7 +102,7 @@ public class Logic {
         return playerHand;
     }
 
-    public void removePlayer(long playerId) {
+    public void removePlayer(int playerId) {
         while (playerHandsAccess) {
             try {
                 wait();
@@ -110,7 +118,7 @@ public class Logic {
         notify();
     }
 
-    public synchronized PlayerHand getPlayer(long playerId) {
+    public synchronized PlayerHand getPlayer(int playerId) {
 
         while (playerHandsAccess) {
             try {
@@ -140,7 +148,7 @@ public class Logic {
      *
      * @param playerId Tällä hetkellä vuorossa olevan pelaajan id. Yleensä haetaan playerTurns listasta
      */
-    public void playerTurn(Long playerId) {
+    public void playerTurn(Integer playerId) {
         if (serverListener == null) {
             return;
         }
@@ -158,7 +166,7 @@ public class Logic {
         currentGameState.setGameState(playerHands, dealerHand, playerId, false);
 
         // Annetaan kortinlaskijalle
-        CardCounterPrediction prediction = cardCounter.getNewPredictionBasedOnGameState(currentState);
+        CardCounterPrediction prediction = cardCounter.getNewPredictionBasedOnGameState(currentGameState);
 
         // Lisätään lähetettävään olioon
         currentGameState.addCardCounterPrediction(prediction);
@@ -170,24 +178,23 @@ public class Logic {
         Stack<Card> playerCards = (Stack<Card>) playerHand.getPlayerHand();
         int playerTotal = playerHand.getPlayerTotal();
 
-        if (action != null)
-            switch (action) {
-                case HIT:
+        switch (action) {
+            case HIT:
+                givePlayerNewCard(playerId);
+                playerTurn(playerId);
+                break;
+            case STAY:
+                playerTurn(playerTurns.pollFirst());
+                break;
+            case DOUBLE:
+                if (playerCards.size() == 2 && playerTotal >= 9 && playerTotal <= 11) {
+                    playerHand.addToBet(playerHand.getBet());
                     givePlayerNewCard(playerId);
-                    playerTurn(playerId);
-                    break;
-                case STAY:
                     playerTurn(playerTurns.pollFirst());
-                    break;
-                case DOUBLE:
-                    if (playerCards.size() == 2 && playerTotal >= 9 && playerTotal <= 11) {
-                        playerHand.addToBet(playerHand.getBet());
-                        givePlayerNewCard(playerId);
-                        playerTurn(playerTurns.pollFirst());
-                    }
-                    break;
-                case SPLIT:
-                    if (playerCards.size() == 2) {
+                }
+                break;
+            case SPLIT:
+                if (playerCards.size() == 2) {
                         /*
                         Card cardOne = playerCards.get(0);
                         Card cardTwo = playerCards.get(1);
@@ -209,14 +216,14 @@ public class Logic {
 
                         }
                         */
-                    }
-                    break;
-                case QUIT:
-                    playerHands.remove(playerId);
-                    break;
-                default:
-                    break;
-            }
+                }
+                break;
+            case QUIT:
+                playerHands.remove(playerId);
+                break;
+            default:
+                break;
+        }
     }
 
     /**
@@ -227,6 +234,8 @@ public class Logic {
         if (playerHands.size() == 0) return;
 
         resetGame();
+
+        currentGameState.gameEnded = false;
 
         askForAndSetRoundBets();
 
@@ -246,10 +255,6 @@ public class Logic {
      * Muuttaa pelin tilan sen alkuperäiseen muotoon
      */
     public void resetGame() {
-        dealerHand.clear();
-        for (PlayerHand playerHand : playerHands.values()) {
-            playerHand.clear();
-        }
         playerTurns = new LinkedList<>(playerHands.keySet());
 
         if (currentDecks.size() < 105) {
@@ -262,7 +267,7 @@ public class Logic {
      * Antaa kaikille peliin kuuluville pelaajille kortin
      */
     public void giveAllPlayersNewCard() {
-        for (Long playerId : playerHands.keySet()) {
+        for (Integer playerId : playerHands.keySet()) {
             givePlayerNewCard(playerId);
         }
     }
@@ -272,7 +277,7 @@ public class Logic {
      *
      * @param playerId Pelaajan id kenelle halutaan antaa kortti
      */
-    public Card givePlayerNewCard(Long playerId) {
+    public Card givePlayerNewCard(int playerId) {
         PlayerHand playerHand = getPlayer(playerId);
         if (playerHand != null) {
             Card newCard = currentDecks.pop();
@@ -292,53 +297,43 @@ public class Logic {
             dealerHand.insertCard(currentDecks.pop());
         }
 
-        System.out.println("Jakajan lopullinen käsi: " + dealerHand);
-        System.out.println("Käden summa: " + dealerHand.getPlayerTotal() + "\n");
-
         for (PlayerHand playerHand : playerHands.values()) {
             if (playerHasWon(playerHand, dealerHand)) {
 
-                System.out.println(playerHand.getName() + " voitti.");
-                int winnings = calculateAndAddRoundWinnings(playerHand);
+                calculateAndAddRoundWinnings(playerHand);
 
-                System.out.println("Voitettu: " + (winnings - playerHand.getHandPlayer().getBet()));
-                System.out.println("Pisteitä jäljellä: " + playerHand.getFunds());
+                playerHand.setHandWon(true);
 
             } else if (playerHand.getPlayerTotal() <= 21 && playerHand.getPlayerTotal() == dealerHand.getPlayerTotal()) {
-                System.out.println(playerHand.getName() + " tasapeli.");
                 playerHand.addToFunds(playerHand.getBet());
-                System.out.println("Pisteitä jäljellä: " + playerHand.getFunds());
             }
         }
 
         // Tilasto osuus - kommentoi pois jos ei PuTTY tunnelia
 
-        Statistic statForRound = new Statistic(playerHands.values(), dealerHand);
+        if (isDatabaseEnabled()) {
 
-        DatabaseInterface dbIF = DatabaseInterface.getInstance();
+            Statistic statForRound = new Statistic(playerHands.values(), dealerHand);
 
-        dbIF.saveStatistic(statForRound);
+            DatabaseInterface dbIF = DatabaseInterface.getInstance();
 
-        System.out.println("\nJakajan kädet aikaisemmilta kierroksilta:");
+            dbIF.saveStatistic(statForRound);
 
-        List<Statistic> stats = dbIF.getStatistics();
+            List<Statistic> stats = dbIF.getStatistics();
 
-        for (Statistic stat : stats) {
-            System.out.println(stat.getId() + ": ");
-            System.out.println(stat.getDealerHand());
+            CalculateStatistics.calculateWinStats(stats);
+
         }
-
-        System.out.print("\n");
-
-        CalculateStatistics.calculateWinStats(stats);
-
-        System.out.println("Pelattujen kierrosten määrä: " + CalculateStatistics.getTotalPlayerRounds());
-        System.out.println("Pelaajien voittomäärä: " + CalculateStatistics.getTotalPlayerWins());
-        System.out.println("Pelaajien voittoprosentti: " + CalculateStatistics.getPlayerWinPercentage() + "%");
 
         // --------------------------------
 
-        doNextRound();
+        currentGameState.addStatistics(CalculateStatistics.getTotalPlayerRounds(), CalculateStatistics.getTotalPlayerWins(), CalculateStatistics.getPlayerWinPercentage());
+
+        currentGameState.setGameState(playerHands, dealerHand, -1, true);
+
+        List<Future<PlayerAction>> playerActions = serverListener.askForRoundParticipation();
+
+        doNextRound(playerActions);
     }
 
     public static boolean playerHasWon(PlayerHand playerHand, PlayerHand dealerHand) {
@@ -349,40 +344,36 @@ public class Logic {
     /**
      * Kysyy pelaajilta haluavatko he osallistua seuraavalle kierrokselle ja aloittaa sen
      */
-    public void doNextRound() {
+    public void doNextRound(List<Future<PlayerAction>> futures) {
 
-        ArrayList<Long> playersToRemove = new ArrayList<>();
-        ArrayList<Long> playersToContinue = new ArrayList<>();
+        ArrayList<PlayerHand> playersToContinue = new ArrayList<>();
 
-        for (PlayerHand playerHand : playerHands.values()) {
-            PlayerAction action = serverListener.askForRoundParticipation(playerHand.getInGameId());
-        for(PlayerHand playerHand : playerHands.values()) {
-            PlayerAction pAction = serverListener.askForRoundParticipation(playerHand.getInGameId());
-            int action = pAction.getActionId();
+        if (futures == null) return;
 
-            if (action == PlayerAction.QUIT) {
-                playersToRemove.add(playerHand.getInGameId());
-            } else {
-                playerHand.resetBet();
-                playersToContinue.add(playerHand.getInGameId());
+        for (Future<PlayerAction> future : futures) {
+            try {
+
+                PlayerAction pAction = future.get();
+                int action = pAction.getActionId();
+
+                if (action != PlayerAction.QUIT) {
+                    PlayerHand playerHand = playerHands.get(pAction.getPlayerId());
+                    playerHand.resetBet();
+                    playersToContinue.add(playerHand);
+                }
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
         }
 
-        for (Long playerId : playersToRemove) {
-            playerHands.remove(playerId);
-        }
-
+        playerHands.clear();
 
         // Pelaajien kädet uusitaan Hibernaten takia. Halutaan tehdä uusi rivi tietokantaan.
-        for (Long playerId : playersToContinue) {
-            String playerName = getPlayer(playerId).getName();
-            addPlayer(new PlayerHand(playerName, playerId));
+        for (PlayerHand playerHand : playersToContinue) {
+            addPlayer(new PlayerHand(playerHand.getHandPlayer()));
         }
 
-        String dealerName = dealerHand.getName();
-        Long dealerId = dealerHand.getInGameId();
-
-        dealerHand = new PlayerHand(dealerName, dealerId);
+        dealerHand = new PlayerHand(dealerHand.getHandPlayer());
 
         startRound();
     }
@@ -392,12 +383,23 @@ public class Logic {
      */
     void askForAndSetRoundBets() {
 
-        for (Long playerId : playerHands.keySet()) {
-            int playerBet = serverListener.askForRoundBet(playerId);
-            PlayerHand playerHand = playerHands.get(playerId);
-            playerHand.setBet(playerBet);
-        }
+        List<Future<PlayerBet>> futures = serverListener.askForRoundBet();
 
+        if (futures == null) return;
+
+        for (Future<PlayerBet> future : futures) {
+            try {
+
+                PlayerBet bet = future.get();
+
+                System.out.println("Pelaajan " + bet.playerId + " panos on " + bet.playerBet);
+
+                playerHands.get(bet.playerId).setBet(bet.playerBet);
+
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -426,11 +428,19 @@ public class Logic {
         return dealerHand;
     }
 
-    public HashMap<Long, PlayerHand> getPlayerHands() {
+    public HashMap<Integer, PlayerHand> getPlayerHands() {
         return playerHands;
     }
 
     public GameState getCurrentGameState() {
         return currentGameState;
+    }
+
+    public boolean isDatabaseEnabled() {
+        return databaseEnabled;
+    }
+
+    public void setDatabaseEnabled(boolean databaseEnabled) {
+        this.databaseEnabled = databaseEnabled;
     }
 }

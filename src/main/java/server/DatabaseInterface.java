@@ -24,6 +24,7 @@ public class DatabaseInterface {
         System.setProperty("com.sun.xml.bind.v2.bytecode.ClassTailor.noOptimize", "true");
         Configuration conf = new Configuration().configure();
 
+        conf.setProperty("lazy", "false");
         conf.addAnnotatedClass(Statistic.class);
         conf.addAnnotatedClass(util.PlayerHand.class);
         conf.addAnnotatedClass(util.Card.class);

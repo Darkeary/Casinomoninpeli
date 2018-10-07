@@ -1,14 +1,15 @@
-package client;
+package server;
 
 import communication.GameState;
 import communication.PlayerAction;
 import util.Card;
-import server.Logic;
-import server.ServerListener;
+import util.PlayerBet;
 import util.PlayerHand;
 
+import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.concurrent.Future;
 
 /**
  * Testi käyttöliittymä.
@@ -28,9 +29,16 @@ public class MockView implements ServerListener {
     }
 
     @Override
+    public void startListener() {
+
+    }
+
+    @Override
     public PlayerAction sendGameStateAndWaitForReply() {
 
         GameState gameStateToSend = logic.getCurrentGameState();
+
+        int playerId = gameStateToSend.currentPlayerId;
 
         System.out.println("Dealerin käsi:");
 
@@ -72,12 +80,11 @@ public class MockView implements ServerListener {
         if (choice.contains("o")) {
             return new PlayerAction(PlayerAction.HIT, playerId);
         } else if (choice.contains("j")) {
-            return PlayerAction.STAY;
-        } else if (choice.contains("t")) {
-            return PlayerAction.DOUBLE;
-        } else if (choice.contains("s")) {
-            return PlayerAction.SPLIT;
             return new PlayerAction(PlayerAction.STAY, playerId);
+        } else if (choice.contains("t")) {
+            return new PlayerAction(PlayerAction.DOUBLE, playerId);
+        } else if (choice.contains("s")) {
+            return new PlayerAction(PlayerAction.SPLIT, playerId);
         } else {
             return new PlayerAction(PlayerAction.QUIT, playerId);
         }
@@ -85,7 +92,11 @@ public class MockView implements ServerListener {
     }
 
     @Override
-    public PlayerAction askForRoundParticipation(long playerId) {
+    public List<Future<PlayerAction>> askForRoundParticipation() {
+        return null;
+    }
+
+    public PlayerAction askForRoundParticipation(int playerId) {
         System.out.println("Pelaaja " + playerId + ":");
         System.out.println("Jatkatko seuraavalle kierrokselle (j) vai lopetatko pelin (l)?");
 
@@ -102,7 +113,11 @@ public class MockView implements ServerListener {
     }
 
     @Override
-    public int askForRoundBet(long playerId) {
+    public List<Future<PlayerBet>> askForRoundBet() {
+        return null;
+    }
+
+    public int askForRoundBet(int playerId) {
         System.out.println("Pelaaja " + playerId + ":");
         System.out.println("Syötä panoksesi: ");
 

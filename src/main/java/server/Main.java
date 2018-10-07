@@ -5,8 +5,6 @@
  */
 package server;
 
-import util.PlayerHand;
-
 /**
  * @author roman
  */
@@ -20,10 +18,6 @@ public class Main {
         System.out.println("server started...");
 
         Logic logic = new Logic(new ConnectionHandler());
-
-        logic.addPlayer(new PlayerHand("Pertti"));
-        logic.addPlayer(new PlayerHand("Jaakko"));
-        logic.addPlayer(new PlayerHand("Ville"));
 
         logic.shuffle();
 

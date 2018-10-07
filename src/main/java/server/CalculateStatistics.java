@@ -12,6 +12,10 @@ public class CalculateStatistics {
     private static float playerWinPercentage = 0;
 
     public static void calculateWinStats(List<Statistic> stats) {
+        totalPlayerRounds = 0;
+        totalPlayerWins = 0;
+        playerWinPercentage = 0;
+
         for (Statistic stat : stats) {
 
             PlayerHand dealerHand = stat.getDealerHand();

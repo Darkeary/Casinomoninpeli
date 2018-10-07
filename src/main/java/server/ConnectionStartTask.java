@@ -1,9 +1,12 @@
 package server;
 
+import communication.Connection;
+import communication.GameState;
 import util.PlayerHand;
 
-import java.io.DataInputStream;
-import java.net.Socket;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.concurrent.Callable;
 
 public class ConnectionStartTask extends ConnectionTask implements Callable<Void> {
@@ -11,31 +14,40 @@ public class ConnectionStartTask extends ConnectionTask implements Callable<Void
     Logic logic;
     PlayerHand playerHand;
 
-    ConnectionStartTask(Socket connection, PlayerHand playerHand, Logic logic) {
-        this.connection = connection;
+    ConnectionStartTask(Connection connection, PlayerHand playerHand, Logic logic) throws IOException {
+        super(connection);
         this.playerHand = playerHand;
         this.logic = logic;
     }
 
     @Override
-    public Void call() throws Exception {
-        DataInputStream in = new DataInputStream(connection.getInputStream());
+    public Void call() throws IOException {
 
-        while (in.available() < 32) {
-            doWait(100);
-        }
+        ObjectOutputStream os = connection.getOs();
+        ObjectInputStream is = connection.getIs();
 
-        int nameSize = in.readInt();
+        // Confirm stream is working
+        int code = is.readInt();
+        os.writeInt(code + 1);
+        os.flush();
+        System.out.println("Connection succesful with client code: " + code);
 
-        while (in.available() < nameSize) {
-            doWait(100);
-        }
+        sendStateSignal(GameState.START_GAME);
 
-        String playerName = in.readUTF();
+        os.writeInt(playerHand.getInGameId());
+
+        os.flush();
+
+        String playerName = is.readUTF();
 
         playerHand.setName(playerName);
 
         logic.addPlayer(playerHand);
+
+        System.out.println("Received player: " + playerName);
+
+        if (logic.getPlayerHands().size() == 2) logic.startRound();
+        else System.out.println("Pelaajia " + logic.getPlayerHands().size() + ", waiting for more players...");
 
         return null;
     }

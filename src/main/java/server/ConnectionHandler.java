@@ -1,11 +1,12 @@
 package server;
 
+import communication.Connection;
 import communication.PlayerAction;
+import util.PlayerBet;
 import util.PlayerHand;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -21,7 +22,7 @@ public class ConnectionHandler extends Thread implements ServerListener {
 
     private ExecutorService pool = Executors.newFixedThreadPool(50);
 
-    private HashMap<Long, Socket> playerConnections = new HashMap<>();
+    private HashMap<Integer, Connection> playerConnections = new HashMap<>();
 
     private Logic logic;
 
@@ -34,21 +35,17 @@ public class ConnectionHandler extends Thread implements ServerListener {
 
         try (ServerSocket server = new ServerSocket(PORT)) {
             while (!isInterrupted()) {
-                try {
 
-                    Socket connection = server.accept();
+                PlayerHand playerHand = new PlayerHand();
 
-                    PlayerHand playerHand = new PlayerHand();
+                System.out.println("Waiting for clients...");
+                playerConnections.put(playerHand.getInGameId(), new Connection(server.accept()));
 
-                    playerConnections.put(playerHand.getInGameId(), connection);
+                System.out.println("Client received, doing start task...");
 
-                    ConnectionStartTask start = new ConnectionStartTask(connection, playerHand, logic);
+                ConnectionStartTask start = new ConnectionStartTask(playerConnections.get(playerHand.getInGameId()), playerHand, logic);
 
-                    pool.submit(start);
-
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
+                pool.submit(start);
             }
         } catch (IOException ex) {
             System.err.println("Serveriä ei pystytty käynnistämään.");
@@ -59,7 +56,7 @@ public class ConnectionHandler extends Thread implements ServerListener {
     }
 
     public void doDisconnect(PlayerAction action) throws IOException {
-        Socket connection = playerConnections.get(action.getPlayerId());
+        Connection connection = playerConnections.get(action.getPlayerId());
         logic.removePlayer(action.getPlayerId());
         connection.close();
     }
@@ -70,13 +67,21 @@ public class ConnectionHandler extends Thread implements ServerListener {
     }
 
     @Override
-    public PlayerAction sendGameStateAndWaitForReply() {
+    public void startListener() {
+        this.start();
+    }
+
+    @Override
+    public synchronized PlayerAction sendGameStateAndWaitForReply() {
 
         Collection<Callable<PlayerAction>> roundTasks = new ArrayList<>();
 
-        for (long playerId : playerConnections.keySet()) {
-            Socket connection = playerConnections.get(playerId);
-            roundTasks.add(new ConnectionRoundTurnTask(connection, playerId, logic.getCurrentGameState()));
+        for (int playerId : playerConnections.keySet()) {
+            try {
+                roundTasks.add(new ConnectionRoundTurnTask(playerConnections.get(playerId), playerId, logic.getCurrentGameState()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         PlayerAction actionToReturn = null;
@@ -95,11 +100,7 @@ public class ConnectionHandler extends Thread implements ServerListener {
 
             }
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
+        } catch (InterruptedException | ExecutionException | IOException e) {
             e.printStackTrace();
         }
 
@@ -107,7 +108,53 @@ public class ConnectionHandler extends Thread implements ServerListener {
     }
 
     @Override
-    public PlayerAction askForRoundParticipation(long playerId) {
+    public List<Future<PlayerAction>> askForRoundParticipation() {
+        Collection<Callable<PlayerAction>> roundEndTasks = new ArrayList<>();
+
+        for (int playerId : playerConnections.keySet()) {
+            if (logic.getPlayer(playerId) != null) {
+                try {
+                    roundEndTasks.add(new ConnectionRoundEndTask(playerConnections.get(playerId), playerId, logic.getCurrentGameState()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        try {
+            return pool.invokeAll(roundEndTasks);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    @Override
+    public List<Future<PlayerBet>> askForRoundBet() {
+
+        Collection<Callable<PlayerBet>> betTasks = new ArrayList<>();
+
+        System.out.println("Pelaajia " + playerConnections.size());
+
+        for (int playerId : playerConnections.keySet()) {
+            if (logic.getPlayer(playerId) != null) {
+                try {
+                    betTasks.add(new ConnectionRoundBetsTask(playerConnections.get(playerId), playerId));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        try {
+
+            return pool.invokeAll(betTasks);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         return null;
     }
 }
