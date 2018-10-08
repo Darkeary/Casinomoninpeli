@@ -22,6 +22,7 @@ public class LogicTest {
     public void setUp() {
         PlayerHand.resetCounter();
         logic = new Logic(testView);
+        logic.setDatabaseEnabled(false);
         logic.shuffle();
         logic.addPlayer(new PlayerHand("Player 1"));
         logic.addPlayer(new PlayerHand("Player 2"));
@@ -79,12 +80,12 @@ public class LogicTest {
     @Test
     public void givePlayerNewCard() {
         System.out.println("\n--givePlayerNewCard--\n");
-        int sizeBeforeAdd = logic.getPlayerHands().get((long) 1).getPlayerHand().size();
+        int sizeBeforeAdd = logic.getPlayerHands().get(1).getPlayerHand().size();
 
         for (int i = 0; i < 10; i++)
-            logic.givePlayerNewCard((long) 1);
+            logic.givePlayerNewCard(1);
 
-        int sizeAfterAdd = logic.getPlayerHands().get((long) 1).getPlayerHand().size();
+        int sizeAfterAdd = logic.getPlayerHands().get(1).getPlayerHand().size();
 
         assertEquals(sizeBeforeAdd + 10, sizeAfterAdd);
 
@@ -105,13 +106,13 @@ public class LogicTest {
     @Test
     public void resetMakesNewDeckWhenUnder105Cards() {
         System.out.println("\n--resetMakesNewDeckWhenUnder105Cards--\n");
-        Card card = logic.givePlayerNewCard((long) 1);
+        Card card = logic.givePlayerNewCard(1);
         assertTrue("Pelaajan kättä ei ollut olemassa, koska korttia ei pystytty jakamaan", card != null);
         assertEquals(415, logic.getCurrentDecks().size());
         // Korttien jako toimii
 
         for (int i = 0; i < 100; i++) {
-            logic.givePlayerNewCard((long) 1);
+            logic.givePlayerNewCard(1);
         }
 
         assertTrue(logic.getCurrentDecks().size() > 105);
@@ -120,7 +121,7 @@ public class LogicTest {
         // Resetointi ei muuta pakkaa jos korttien määrä > 105
 
         for (int i = 0; i < 211; i++) {
-            logic.givePlayerNewCard((long) 1);
+            logic.givePlayerNewCard(1);
         }
 
         assertTrue(logic.getCurrentDecks().size() < 105);
@@ -138,7 +139,7 @@ public class LogicTest {
         // Alku funds on 100 ja bet on 10
         logic.askForAndSetRoundBets();
 
-        PlayerHand playerHand = logic.getPlayerHands().get((long) 1);
+        PlayerHand playerHand = logic.getPlayerHands().get(1);
 
         // Eli lopputulos on 90
         assertEquals(90, playerHand.getFunds());
@@ -153,7 +154,7 @@ public class LogicTest {
         // Alku funds on 100 ja bet on 10
         logic.askForAndSetRoundBets();
 
-        Player player = logic.getPlayerHands().get((long) 1).getHandPlayer();
+        Player player = logic.getPlayerHands().get(1).getHandPlayer();
 
         // Jakajan summa on aina yli 21, pelaajat voittavat aina
         logic.getDealerHand().insertCard(AllDecks.king);
@@ -175,7 +176,7 @@ public class LogicTest {
         // Alku funds on 100 ja bet on 10
         logic.askForAndSetRoundBets();
 
-        PlayerHand playerHand = logic.getPlayerHands().get((long) 1);
+        PlayerHand playerHand = logic.getPlayerHands().get(1);
 
         // Jakajan summa on aina yli 21, pelaajat voittavat aina
         logic.getDealerHand().insertCard(AllDecks.king);
@@ -201,7 +202,7 @@ public class LogicTest {
         // Alku funds on 100 ja bet on 10
         logic.askForAndSetRoundBets();
 
-        PlayerHand playerHand = logic.getPlayerHands().get((long) 1);
+        PlayerHand playerHand = logic.getPlayerHands().get(1);
 
         // Pelaajalla blackjack
         playerHand.getPlayerHand().add(AllDecks.ten);
@@ -225,7 +226,7 @@ public class LogicTest {
         // Alku funds on 100 ja bet on 10
         logic.askForAndSetRoundBets();
 
-        PlayerHand playerHand = logic.getPlayerHands().get((long) 1);
+        PlayerHand playerHand = logic.getPlayerHands().get(1);
 
         // Pelaajalla yli 21, summa 30
         playerHand.getPlayerHand().add(AllDecks.ten);
@@ -252,7 +253,7 @@ public class LogicTest {
         // Alku funds on 100 ja bet on 10
         logic.askForAndSetRoundBets();
 
-        PlayerHand playerHand = logic.getPlayerHands().get((long) 1);
+        PlayerHand playerHand = logic.getPlayerHands().get(1);
 
         // Pelaajalla summa >= 9 && summa <= 11
         playerHand.getPlayerHand().add(AllDecks.four);

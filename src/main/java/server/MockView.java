@@ -3,19 +3,23 @@ package server;
 import communication.GameState;
 import communication.PlayerAction;
 import util.Card;
+import util.PlayerBet;
 import util.PlayerHand;
 
+import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.concurrent.Future;
 
 /**
- * Testi käyttöliittymä.
+ * Vanha serverin testikäyttöliittymä, ei enään käytössä.
  *
  * @author Tuomas
  */
 public class MockView implements ServerListener {
 
     private static MockView ourInstance = new MockView();
+    private Logic logic;
 
     private MockView() {
     }
@@ -25,7 +29,16 @@ public class MockView implements ServerListener {
     }
 
     @Override
-    public PlayerAction sendGameStateAndWaitForReply(GameState gameStateToSend) {
+    public void startListener() {
+
+    }
+
+    @Override
+    public PlayerAction sendGameStateAndWaitForReply() {
+
+        GameState gameStateToSend = logic.getCurrentGameState();
+
+        int playerId = gameStateToSend.currentPlayerId;
 
         System.out.println("Dealerin käsi:");
 
@@ -65,20 +78,25 @@ public class MockView implements ServerListener {
         String choice = reader.nextLine();
 
         if (choice.contains("o")) {
-            return PlayerAction.HIT;
+            return new PlayerAction(PlayerAction.HIT, playerId);
         } else if (choice.contains("j")) {
-            return PlayerAction.STAY;
+            return new PlayerAction(PlayerAction.STAY, playerId);
         } else if (choice.contains("t")) {
-            return PlayerAction.DOUBLE;
+            return new PlayerAction(PlayerAction.DOUBLE, playerId);
         } else if (choice.contains("s")) {
-            return PlayerAction.SPLIT;
+            return new PlayerAction(PlayerAction.SPLIT, playerId);
         } else {
-            return PlayerAction.QUIT;
+            return new PlayerAction(PlayerAction.QUIT, playerId);
         }
+
     }
 
     @Override
-    public PlayerAction askForRoundParticipation(long playerId) {
+    public List<Future<PlayerAction>> askForRoundParticipation() {
+        return null;
+    }
+
+    public PlayerAction askForRoundParticipation(int playerId) {
         System.out.println("Pelaaja " + playerId + ":");
         System.out.println("Jatkatko seuraavalle kierrokselle (j) vai lopetatko pelin (l)?");
 
@@ -86,16 +104,20 @@ public class MockView implements ServerListener {
         String choice = reader.nextLine();
 
         if (choice.contains("j")) {
-            return PlayerAction.PLAY;
+            return new PlayerAction(PlayerAction.PLAY, playerId);
         } else if (choice.contains("l")) {
-            return PlayerAction.QUIT;
+            return new PlayerAction(PlayerAction.QUIT, playerId);
         } else {
-            return PlayerAction.QUIT;
+            return new PlayerAction(PlayerAction.QUIT, playerId);
         }
     }
 
     @Override
-    public int askForRoundBet(long playerId) {
+    public List<Future<PlayerBet>> askForRoundBet() {
+        return null;
+    }
+
+    public int askForRoundBet(int playerId) {
         System.out.println("Pelaaja " + playerId + ":");
         System.out.println("Syötä panoksesi: ");
 
@@ -104,5 +126,10 @@ public class MockView implements ServerListener {
 
         return Integer.parseInt(amount);
 
+    }
+
+    @Override
+    public void setGameLogic(Logic logic) {
+        this.logic = logic;
     }
 }

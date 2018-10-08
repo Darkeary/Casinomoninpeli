@@ -5,14 +5,14 @@
  */
 package util;
 
-import communication.PlayerAction;
+import java.io.Serializable;
 
-public class CardCounterPrediction {
-    
-    public PlayerAction suggestedAction;
+public class CardCounterPrediction implements Serializable {
+
+    public int suggestedAction;
     public Card predictedNextCard;
-    
-    public CardCounterPrediction(PlayerAction suggestedAction, Card predictedNextCard) {
+
+    public CardCounterPrediction(int suggestedAction, Card predictedNextCard) {
         this.suggestedAction = suggestedAction;
         this.predictedNextCard = predictedNextCard;
     }

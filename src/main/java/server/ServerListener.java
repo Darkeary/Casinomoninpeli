@@ -1,17 +1,22 @@
 package server;
 
-import communication.GameState;
 import communication.PlayerAction;
+import util.PlayerBet;
+
+import java.util.List;
+import java.util.concurrent.Future;
 
 /**
  * Server - client yhteyden rajapinta
  */
 public interface ServerListener {
 
-    PlayerAction sendGameStateAndWaitForReply(GameState gameStateToSend);
+    void startListener();
+    PlayerAction sendGameStateAndWaitForReply();
 
-    PlayerAction askForRoundParticipation(long playerId);
+    List<Future<PlayerAction>> askForRoundParticipation();
 
-    int askForRoundBet(long playerId);
+    List<Future<PlayerBet>> askForRoundBet();
+    void setGameLogic(Logic logic);
 
 }
