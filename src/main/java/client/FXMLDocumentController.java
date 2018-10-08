@@ -13,6 +13,8 @@ import javafx.scene.text.TextFlow;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
+import javafx.scene.control.ScrollPane;
 
 /**
  * @author Tuomas
@@ -20,7 +22,9 @@ import java.util.ResourceBundle;
 public class FXMLDocumentController implements Initializable {
 
     @FXML
-    private TextFlow textFlow;
+    TextFlow textFlow;
+    @FXML
+    ScrollPane textContainer;
 
     @FXML
     private void hitPressed(ActionEvent event) {
@@ -29,8 +33,15 @@ public class FXMLDocumentController implements Initializable {
     }
 
     public void addTextRow(String text) {
-        Text textObj = new Text(text + "\n");
-        textFlow.getChildren().add(textObj);
+
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                Text textObj = new Text(text + "\n");
+                textFlow.getChildren().add(textObj);
+            }
+        });
+
     }
 
     @Override

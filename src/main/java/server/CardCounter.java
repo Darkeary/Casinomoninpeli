@@ -10,6 +10,9 @@ import communication.PlayerAction;
 import util.Card;
 import util.CardCounterPrediction;
 
+/**
+ * Kortinlaskija, antaa pelaajille ennustuksia seuraavasta kortista ja suosituksia siitä mitä pelaajan kannattaisi tehdä
+ */
 public class CardCounter {
     
     public CardCounterPrediction getNewPredictionBasedOnGameState(GameState gamestate) {

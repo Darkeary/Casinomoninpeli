@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.TextFlow?>
-<AnchorPane xmlns:fx="http://javafx.com/fxml/1" id="AnchorPane" prefHeight="334.0" prefWidth="344.0"
-            stylesheets="@fxml.css" xmlns="http://javafx.com/javafx/8.0.121"
-            fx:controller="client.FXMLDocumentController">
+
+<AnchorPane id="AnchorPane" prefHeight="334.0" prefWidth="344.0" stylesheets="@fxml.css" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="client.FXMLDocumentController">
     <children>
-        <TextFlow fx:id="textFlow" layoutX="13.0" layoutY="20.0" prefHeight="155.0" prefWidth="318.0"/>
+      <ScrollPane fx:id="textContainer" prefHeight="334.0" prefWidth="344.0">
+         <content>
+              <TextFlow fx:id="textFlow" prefHeight="331.0" prefWidth="338.0" />
+         </content>
+      </ScrollPane>
     </children>
 </AnchorPane>

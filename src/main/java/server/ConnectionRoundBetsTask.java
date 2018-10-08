@@ -8,6 +8,10 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.concurrent.Callable;
 
+
+/**
+ * Taski mikä kysyy pelaajilta kierroksen panoksen
+ */
 public class ConnectionRoundBetsTask extends ConnectionTask implements Callable<PlayerBet> {
 
     int playerId;

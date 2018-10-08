@@ -9,6 +9,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.Callable;
 
+
+/**
+ * Taski mikä suorittaa blackjack pelin yksittäisen kierroksen toimet. Lähettää pelaajalle pelin tilan ja kysyy mitä tällä hetkellä vuorossa oleva pelaaja haluaa tehdä.
+ */
 public class ConnectionRoundTurnTask extends ConnectionTask implements Callable<PlayerAction> {
 
     private GameState currentGameState;

@@ -112,7 +112,7 @@ public class ConnectionHandler extends Thread implements ServerListener {
         Collection<Callable<PlayerAction>> roundEndTasks = new ArrayList<>();
 
         for (int playerId : playerConnections.keySet()) {
-            if (logic.getPlayer(playerId) != null) {
+            if (logic.getPlayer(playerId) != null || logic.pausedPlayers.get(playerId) != null) {
                 try {
                     roundEndTasks.add(new ConnectionRoundEndTask(playerConnections.get(playerId), playerId, logic.getCurrentGameState()));
                 } catch (IOException e) {

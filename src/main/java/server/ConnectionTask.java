@@ -5,6 +5,9 @@ import communication.Connection;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 
+/**
+ * Kaikkien yhteys taskien yliluokka. Sisältää yhteiset toiminnallisuudet
+ */
 public class ConnectionTask {
 
     protected Connection connection;
