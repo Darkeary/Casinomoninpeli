@@ -21,8 +21,6 @@ public class Main {
 
         logic.shuffle();
 
-        logic.startRound();
-
     }
 
 }

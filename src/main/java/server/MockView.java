@@ -12,7 +12,7 @@ import java.util.Stack;
 import java.util.concurrent.Future;
 
 /**
- * Testi käyttöliittymä.
+ * Vanha serverin testikäyttöliittymä, ei enään käytössä.
  *
  * @author Tuomas
  */
