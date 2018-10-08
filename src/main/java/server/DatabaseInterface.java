@@ -52,6 +52,9 @@ public class DatabaseInterface {
         session.close();
     }
 
+    /**
+     * Tallentaa tilasto olion tietokantaan
+     */
     public void saveStatistic(Statistic stat) {
         Session session = startTransaction();
 
@@ -61,6 +64,10 @@ public class DatabaseInterface {
         closeSession(session);
     }
 
+    
+    /**
+     * Hakee kaikki tilastot tietokannasta
+     */
     public List<Statistic> getStatistics() {
         Session session = startTransaction();
 

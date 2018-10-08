@@ -9,6 +9,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.Callable;
 
+
+/**
+ * Taski mikä tekee pelaajan kanssa kierroksen lopputoimet
+ */
 public class ConnectionRoundEndTask extends ConnectionTask implements Callable<PlayerAction> {
 
     private GameState currentGameState;

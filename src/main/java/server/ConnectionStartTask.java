@@ -9,6 +9,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.Callable;
 
+/**
+ * Taski mikä suorittaa pelin alkutoimet uuden pelaajan liittyessä
+ */
 public class ConnectionStartTask extends ConnectionTask implements Callable<Void> {
 
     Logic logic;
@@ -41,12 +44,20 @@ public class ConnectionStartTask extends ConnectionTask implements Callable<Void
         String playerName = is.readUTF();
 
         playerHand.setName(playerName);
-
+        
+        if(logic.gameStarted) {
+            
+            logic.pausedPlayers.put(playerHand.getInGameId(), playerHand);
+            
+        } else {
+            
         logic.addPlayer(playerHand);
+        
+        }
 
         System.out.println("Received player: " + playerName);
 
-        if (logic.getPlayerHands().size() == 2) logic.startRound();
+        if (logic.getPlayerHands().size() == 2 && !logic.gameStarted) logic.startRound();
         else System.out.println("Pelaajia " + logic.getPlayerHands().size() + ", waiting for more players...");
 
         return null;

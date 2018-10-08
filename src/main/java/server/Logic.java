@@ -43,6 +43,11 @@ public class Logic {
      * Tällä hetkellä pelissä käytössä oleva pakka
      */
     private Stack<Card> currentDecks = allDecks.getNewDecks();
+    
+    /**
+     * Onko peli alkanut
+     */
+    boolean gameStarted = false;
 
     /**
      * Jakajan käsi
@@ -54,6 +59,11 @@ public class Logic {
      */
     private HashMap<Integer, PlayerHand> playerHands = new HashMap<>();
     private boolean playerHandsAccess = false;
+    
+    /**
+     * Sisältää pelaajat ketkä ovat mukana pelissä, mutta eivät tällä hetkellä pelaa
+     */
+    HashMap<Integer, PlayerHand> pausedPlayers = new HashMap<>();
 
     /**
      * Pelaajien id:eistä koostuva vuorolista
@@ -65,6 +75,9 @@ public class Logic {
      */
     private CardCounter cardCounter = new CardCounter();
 
+    /**
+     * Käytetäänkö pelissä tietokanna tilastotietoja
+     */
     private boolean databaseEnabled = false;
 
     /* --------------------- */
@@ -83,6 +96,12 @@ public class Logic {
         serverListener.startListener();
     }
 
+    
+    /**
+     * Lisää uuden pelaajan peliin
+     * 
+     * @param playerHand Uuden pelaajan tämänhetkinen käsi olio
+     */
     public synchronized PlayerHand addPlayer(PlayerHand playerHand) {
 
         while (playerHandsAccess) {
@@ -102,6 +121,11 @@ public class Logic {
         return playerHand;
     }
 
+    /**
+     * Poista pelaaja jos olemassa
+     * 
+     * @param playerId Poistettavan pelaajan id
+     */
     public void removePlayer(int playerId) {
         while (playerHandsAccess) {
             try {
@@ -118,6 +142,11 @@ public class Logic {
         notify();
     }
 
+    /**
+     * Hae pelissä oleva pelaaja
+     * 
+     * @param playerId Haettavan pelaajan id
+     */
     public synchronized PlayerHand getPlayer(int playerId) {
 
         while (playerHandsAccess) {
@@ -232,6 +261,8 @@ public class Logic {
     public void startRound() {
 
         if (playerHands.size() == 0) return;
+        
+        gameStarted = true;
 
         resetGame();
 
@@ -331,11 +362,21 @@ public class Logic {
 
         currentGameState.setGameState(playerHands, dealerHand, -1, true);
 
+        for(PlayerHand playerHand : pausedPlayers.values()) {
+            addPlayer(new PlayerHand(playerHand.getHandPlayer()));
+        }
+        
         List<Future<PlayerAction>> playerActions = serverListener.askForRoundParticipation();
 
         doNextRound(playerActions);
     }
 
+    /**
+     * Katsoo onko pelaaja voittanut pelin
+     * 
+     * @param playerHand Pelaajan käsi
+     * @param dealerHand Pelin jakajan käsi
+     */
     public static boolean playerHasWon(PlayerHand playerHand, PlayerHand dealerHand) {
         return (playerHand.getPlayerTotal() <= 21 && playerHand.getPlayerTotal() > dealerHand.getPlayerTotal())
                 || (dealerHand.getPlayerTotal() > 21 && playerHand.getPlayerTotal() <= 21);
@@ -346,6 +387,8 @@ public class Logic {
      */
     public void doNextRound(List<Future<PlayerAction>> futures) {
 
+        pausedPlayers.clear();
+        
         ArrayList<PlayerHand> playersToContinue = new ArrayList<>();
 
         if (futures == null) return;
@@ -360,6 +403,9 @@ public class Logic {
                     PlayerHand playerHand = playerHands.get(pAction.getPlayerId());
                     playerHand.resetBet();
                     playersToContinue.add(playerHand);
+                }
+                else {
+                    pausedPlayers.put(pAction.getPlayerId(), playerHands.get(pAction.getPlayerId()));
                 }
             } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
@@ -404,6 +450,8 @@ public class Logic {
 
     /**
      * Laskee pelaajan voitot olettaen että pelaaja on voittanut ja se on tarkistettu.
+     * 
+     * @param playerHand Laskettava käsi
      */
     private int calculateAndAddRoundWinnings(PlayerHand playerHand) {
 

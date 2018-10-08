@@ -8,6 +8,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 
+/**
+ * Client - server yhteyden client puoli
+ */
 class ClientConnection extends Thread {
 
     final static String IP = "localhost";
@@ -49,6 +52,11 @@ class ClientConnection extends Thread {
         }
     }
 
+    /**
+     * Aloittaa yhteyden serveriin antamalla sille pelaajan nimen
+     * 
+     * @param playerName Pelaajan nimi
+     */
     void connectionStart(String playerName) throws IOException {
 
         ObjectOutputStream os = connection.getOs();
@@ -58,6 +66,12 @@ class ClientConnection extends Thread {
         os.flush();
     }
 
+    
+    /**
+     * Lähettää pelaajan kierroksen panoksen serverille
+     * 
+     * @param playerBet Pelaajan panos
+     */
     void writePlayerBetToServer(int playerBet) throws IOException {
 
         ObjectOutputStream os = connection.getOs();
@@ -67,6 +81,9 @@ class ClientConnection extends Thread {
         os.flush();
     }
 
+    /**
+     * Lukee pelin tämänhetkisen tilan serveriltä
+     */
     GameState readGameStateFromServer() throws IOException {
 
         ObjectInputStream is = connection.getIs();
@@ -91,6 +108,11 @@ class ClientConnection extends Thread {
         return gameState;
     }
 
+    /**
+     * Lähettää pelaajan toiminnon serverille
+     * 
+     * @param playerAction Pelaajan valitsema toiminto
+     */
     void writePlayerActionToServer(int playerAction) throws IOException {
         ObjectOutputStream os = connection.getOs();
 
@@ -98,6 +120,11 @@ class ClientConnection extends Thread {
         os.flush();
     }
 
+    /**
+     * Yhdistää serveriin
+     * 
+     * @param view Käyttöliittymä mitä yhteysolio kutsuu
+     */
     void initializeConnection(ClientView view) throws IOException {
         connection = new Connection(new Socket(IP, PORT));
 
@@ -116,7 +143,11 @@ class ClientConnection extends Thread {
         this.view = view;
     }
 
+    /**
+     * Sulkee yhteyden
+     */
     void quitGame() throws IOException {
+        
         connection.close();
     }
 

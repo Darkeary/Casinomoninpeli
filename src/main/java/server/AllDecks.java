@@ -10,6 +10,8 @@ import util.Card;
 import java.util.Stack;
 
 /**
+ * Korttipakkaa mallintava luokka
+ * 
  * @author Anders
  */
 public class AllDecks {
