@@ -8,10 +8,13 @@ package client;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Label;
+import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 import java.net.URL;
 import java.util.ResourceBundle;
+import javafx.application.Platform;
+import javafx.scene.control.ScrollPane;
 
 /**
  * @author Tuomas
@@ -19,12 +22,26 @@ import java.util.ResourceBundle;
 public class FXMLDocumentController implements Initializable {
 
     @FXML
-    private Label label;
+    TextFlow textFlow;
+    @FXML
+    ScrollPane textContainer;
 
     @FXML
-    private void handleButtonAction(ActionEvent event) {
-        System.out.println("You clicked me!");
-        label.setText("Hello World!");
+    private void hitPressed(ActionEvent event) {
+        Text text1 = new Text("Big italic red text\n");
+        textFlow.getChildren().add(text1);
+    }
+
+    public void addTextRow(String text) {
+
+        Platform.runLater(new Runnable() {
+            @Override
+            public void run() {
+                Text textObj = new Text(text + "\n");
+                textFlow.getChildren().add(textObj);
+            }
+        });
+
     }
 
     @Override

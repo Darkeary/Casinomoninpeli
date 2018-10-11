@@ -39,6 +39,8 @@ public class PlayerHand implements Serializable {
      */
     private int handBet;
 
+    private boolean handWon = false;
+
     @OneToOne(cascade = CascadeType.ALL)
     private Player handPlayer;
 
@@ -46,6 +48,7 @@ public class PlayerHand implements Serializable {
     private PlayerHand splitHand;
 
     public PlayerHand() {
+        handPlayer = new Player();
     }
 
     /**
@@ -59,7 +62,7 @@ public class PlayerHand implements Serializable {
      * @param name pelaajan nimi
      * @param id   pelaajan id
      */
-    public PlayerHand(String name, Long id) {
+    public PlayerHand(String name, int id) {
         handPlayer = new Player(id, name);
     }
 
@@ -199,7 +202,7 @@ public class PlayerHand implements Serializable {
         handPlayer.setName(name);
     }
 
-    public long getInGameId() {
+    public int getInGameId() {
         return handPlayer.getInGameId();
     }
 
@@ -213,5 +216,13 @@ public class PlayerHand implements Serializable {
 
     public void setDatabaseHandId(long databaseHandId) {
         this.databaseHandId = databaseHandId;
+    }
+
+    public boolean isHandWon() {
+        return handWon;
+    }
+
+    public void setHandWon(boolean handWon) {
+        this.handWon = handWon;
     }
 }

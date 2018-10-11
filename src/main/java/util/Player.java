@@ -22,7 +22,7 @@ public class Player implements Serializable {
     private static AtomicInteger sequence = new AtomicInteger(0);
 
     @Transient
-    private long inGameId;
+    private int inGameId;
 
     @Transient
     private int bet;
@@ -35,6 +35,7 @@ public class Player implements Serializable {
     }
 
     public Player() {
+        this.inGameId = sequence.getAndIncrement();
     }
 
     public Player(String name) {
@@ -42,23 +43,23 @@ public class Player implements Serializable {
         this.inGameId = sequence.getAndIncrement();
     }
 
-    public Player(long inGameId, String name) {
+    public Player(int inGameId, String name) {
         this.inGameId = inGameId;
         this.name = name;
     }
 
-    public Player(long inGameId, String name, int funds, int bet) {
+    public Player(int inGameId, String name, int funds, int bet) {
         this.inGameId = inGameId;
         this.name = name;
         this.funds = funds;
         this.bet = bet;
     }
 
-    public long getInGameId() {
+    public int getInGameId() {
         return inGameId;
     }
 
-    public void setInGameId(long inGameId) {
+    public void setInGameId(int inGameId) {
         this.inGameId = inGameId;
     }
 
